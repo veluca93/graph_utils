@@ -7,6 +7,9 @@
 
 enum GraphReadOptions { DEFAULT = 0x0, BIDIRECTIONAL = 0x1 };
 
+DECLARE_string(input_file);
+DECLARE_string(output_file);
+
 ChangeOutputFile SetupGraphOutput() __attribute__((warn_unused_result));
 ChangeInputFile SetupGraphInput() __attribute__((warn_unused_result));
 

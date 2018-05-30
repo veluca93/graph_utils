@@ -1,7 +1,7 @@
-#include "nde_format.hpp"
+#include "graph_io.hpp"
 
 int main(int argc, char **argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
-  std::unique_ptr<Graph> g = ReadNDE();
-  WriteNDE(g.get());
+  std::unique_ptr<Graph> g = ReadGraph();
+  WriteGraph(g.get());
 }
