@@ -10,6 +10,8 @@ DEFINE_string(degeneracy, "",
               "Folder where the degeneracy info has been saved");
 
 DEFINE_string(output, "output.ppm", "Where the produced image is saved");
+DEFINE_string(nodes_output, "",
+              "Where the number of nodes in this frame is saved");
 DEFINE_string(highlight, "",
               "File containing the nodes that should be highlighted");
 DEFINE_uint64(degen_thresh, 0,
@@ -103,12 +105,19 @@ int main(int argc, char **argv) {
   }
 
   {
+    size_t left_nodes = 0;
     Counter cnt("Erasing nodes");
     for (size_t i = 0; i < N; i++) {
       if (i < FLAGS_fraction_to_delete * first_to_keep) {
         erased[perm[i]] = true;
         cnt++;
+      } else {
+        left_nodes++;
       }
+    }
+    if (!FLAGS_nodes_output.empty()) {
+      ChangeOutputFile chg(FLAGS_nodes_output);
+      write(left_nodes, '\n');
     }
   }
 
