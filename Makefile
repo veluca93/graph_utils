@@ -1,6 +1,6 @@
-CXXFLAGS=-O3 -Wall -std=c++17 -I/usr/include/freetype2/ -I. -flto
+CXXFLAGS=-O3 -Wall -std=c++14 -I/usr/include/freetype2/ -I. -flto
 LDFLAGS=-lpng -lfreetype -flto -ltcmalloc
-CC=g++-7
+CC=g++
 
 all: bin/el2nde bin/el2png bin/nde2el bin/nde2oly bin/nde2tsv bin/oly2nde bin/tsv2nde bin/clean_nde
 
