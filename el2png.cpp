@@ -1,3 +1,4 @@
+#include "io.hpp"
 #include <algorithm>
 #include <array>
 #include <fstream>
@@ -8,35 +9,6 @@
 #include <vector>
 
 #include "pngwriter.h"
-
-static const size_t buf_size = 32678;
-
-size_t nextInt() {
-  size_t n = 0;
-  int ch = getchar_unlocked();
-  if (ch == '#') {
-    while (ch != EOF && ch != '\n')
-      ch = getchar_unlocked();
-  }
-  while (ch != EOF && (ch < '0' || ch > '9')) {
-    ch = getchar_unlocked();
-    if (ch == '#') {
-      while (ch != EOF && ch != '\n')
-        ch = getchar_unlocked();
-    }
-  }
-  if (ch == EOF)
-    return EOF;
-  while (ch >= '0' && ch <= '9') {
-    n = 10 * n + ch - '0';
-    ch = getchar_unlocked();
-  }
-  if (ch == '#') {
-    while (ch != EOF && ch != '\n')
-      ch = getchar_unlocked();
-  }
-  return n;
-}
 
 std::pair<std::vector<size_t>, std::vector<size_t>>
 get_perm(const std::vector<size_t> *graph, size_t N) {
@@ -92,7 +64,6 @@ int main(int argc, char **argv) {
               << std::endl;
     return 1;
   }
-  std::ios_base::sync_with_stdio(false);
   std::vector<std::pair<size_t, size_t>> edges;
   size_t a, b;
   size_t N = 0;
