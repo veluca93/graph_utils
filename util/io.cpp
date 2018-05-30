@@ -1,24 +1,37 @@
 #include "io.hpp"
+#include <iomanip>
 #include <iostream>
 #include <stdio.h>
 
-static const size_t buf_size = 32678;
+static const size_t buf_size = 1 << 16;
 
-static std::string buf;
+static char buf[buf_size + 1] = {};
+static size_t buf_position = 0;
 
-static void init_output() { buf.reserve(1024); }
+static void init_output() {}
 
 static void flush() {
+  buf[buf_position] = 0;
   std::cout << buf;
-  buf.clear();
+  buf_position = 0;
 }
 
-void AddToBuffer(const std::string &s) {
-  buf += strtk::type_to_string(s);
-  if (buf.size() > buf_size) {
+void AddToBuffer(char c) {
+  buf[buf_position++] = c;
+  if (buf_position > buf_size) {
     flush();
   }
 }
+void AddToBuffer(const std::string &s) {
+  for (char c : s) {
+    buf[buf_position++] = c;
+  }
+  if (buf_position > buf_size) {
+    flush();
+  }
+}
+
+template <> void write(const char &param) { AddToBuffer(param); }
 
 size_t nextInt(bool comments) {
   size_t n = 0;
@@ -58,10 +71,20 @@ public:
 
 static IOSetup iosetup;
 
+static void msg(const std::string &base, size_t cnt,
+                const std::chrono::high_resolution_clock::time_point &start,
+                char endc) {
+  size_t time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                       std::chrono::high_resolution_clock::now() - start)
+                       .count();
+  std::cerr << std::setw(30) << base << ": " << std::setw(15) << cnt
+            << "    Time taken: " << std::setw(10) << time_ms << "ms " << endc;
+}
+
 void Counter::operator++(int) {
   cnt_++;
   if (cnt_ % interval_ == 0) {
-    std::cerr << base_msg_ << ": " << cnt_ << "\r";
+    msg(base_msg_, cnt_, start_, '\r');
   }
 }
-Counter::~Counter() { std::cerr << base_msg_ << ": " << cnt_ << "\n"; }
+Counter::~Counter() { msg(base_msg_, cnt_, start_, '\n'); }

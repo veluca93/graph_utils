@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
           node_degree[v]++;
         }
       }
+      cnt++;
     }
   }
 
@@ -59,8 +60,7 @@ int main(int argc, char **argv) {
   {
     Counter cnt("Outputting nodes");
     for (size_t i = 0; i < N; i++) {
-      write(i, ' ');
-      write(node_degree[i], '\n');
+      write(i, ' ', node_degree[i], '\n');
       cnt++;
     }
   }
@@ -69,8 +69,7 @@ int main(int argc, char **argv) {
     for (size_t i = 0; i < N; i++) {
       for (size_t v : graph[i]) {
         if (i < v) {
-          write(i, ' ');
-          write(v, '\n');
+          write(i, ' ', v, '\n');
           cnt++;
         }
       }
