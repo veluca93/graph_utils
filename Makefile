@@ -2,7 +2,7 @@ CXXFLAGS=-O3 -Wall -std=c++17 -I/usr/include/freetype2/ -I. -flto
 LDFLAGS=-lpng -lfreetype -flto
 CC=g++-7
 
-all: bin/el2nde bin/el2png bin/nde2el bin/nde2oly bin/nde2tsv bin/oly2nde bin/tsv2nde
+all: bin/el2nde bin/el2png bin/nde2el bin/nde2oly bin/nde2tsv bin/oly2nde bin/tsv2nde bin/clean_nde
 
 build/pngwriter.o: pngwriter.cc
 	${CC} $^ -o $@ -c ${CXXFLAGS}
@@ -29,6 +29,9 @@ bin/oly2nde: oly2nde.cpp
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
 bin/tsv2nde: tsv2nde.cpp
+	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
+
+bin/clean_nde: clean_nde.cpp
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
 clean:
