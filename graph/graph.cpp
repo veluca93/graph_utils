@@ -11,8 +11,39 @@ ChangeOutputFile SetupGraphOutput() {
 ChangeInputFile SetupGraphInput() { return ChangeInputFile(FLAGS_input_file); }
 
 InMemoryGraph::InMemoryGraph(std::vector<std::pair<size_t, size_t>> &&edges) {
-  assert_m(__func__, "not implemented");
+  size_t N = 0;
+  {
+    Counter cnt("Computing maximum node");
+    for (size_t i = 0; i < edges.size(); i++) {
+      if (edges[i].first > N)
+        N = edges[i].first;
+      if (edges[i].second > N)
+        N = edges[i].second;
+      cnt++;
+    }
+  }
+  N++;
+
+  neigh_start_.resize(N + 1);
+  neighs_.resize(edges.size());
+  neigh_start_[0] = 0;
+  {
+    Counter cnt("Copying edges");
+    for (size_t i = 0; i < edges.size(); i++) {
+      neigh_start_[edges[i].first + 1]++;
+      neighs_[i] = edges[i].second;
+      cnt++;
+    }
+  }
+  {
+    Counter cnt("Computing degrees");
+    for (size_t i = 1; i < N + 1; i++) {
+      neigh_start_[i] += neigh_start_[i - 1];
+      cnt++;
+    }
+  }
 }
+
 InMemoryGraph::InMemoryGraph(std::vector<std::vector<size_t>> &&adj) {
   size_t accum_degree = 0;
   neigh_start_.resize(adj.size() + 1);

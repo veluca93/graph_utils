@@ -16,25 +16,34 @@ build/graph.o: graph/graph.cpp graph/graph.hpp build/io.o
 build/nde_format.o: graph/nde_format.cpp graph/nde_format.hpp build/graph.o
 	${CC} $< -o $@ -c ${CXXFLAGS}
 
-bin/el2nde: el2nde.cpp build/io.o
+build/el_format.o: graph/el_format.cpp graph/el_format.hpp build/graph.o
+	${CC} $< -o $@ -c ${CXXFLAGS}
+
+build/oly_format.o: graph/oly_format.cpp graph/oly_format.hpp build/graph.o
+	${CC} $< -o $@ -c ${CXXFLAGS}
+
+build/tsv_format.o: graph/tsv_format.cpp graph/tsv_format.hpp build/graph.o
+	${CC} $< -o $@ -c ${CXXFLAGS}
+
+bin/el2nde: el2nde.cpp build/io.o build/graph.o build/nde_format.o build/el_format.o
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
 bin/el2png: el2png.cpp build/pngwriter.o build/io.o
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
-bin/nde2el: nde2el.cpp build/io.o
+bin/nde2el: nde2el.cpp build/io.o build/graph.o build/nde_format.o build/el_format.o
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
-bin/nde2oly: nde2oly.cpp build/io.o
+bin/nde2oly: nde2oly.cpp build/io.o build/graph.o build/nde_format.o build/oly_format.o
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
-bin/nde2tsv: nde2tsv.cpp build/io.o
+bin/nde2tsv: nde2tsv.cpp build/io.o build/graph.o build/nde_format.o build/tsv_format.o
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
-bin/oly2nde: oly2nde.cpp build/io.o
+bin/oly2nde: oly2nde.cpp build/io.o build/graph.o build/nde_format.o build/oly_format.o
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
-bin/tsv2nde: tsv2nde.cpp build/io.o
+bin/tsv2nde: tsv2nde.cpp build/io.o build/graph.o build/nde_format.o build/tsv_format.o
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
 bin/clean_nde: clean_nde.cpp build/io.o build/graph.o build/nde_format.o

@@ -49,12 +49,27 @@ std::unique_ptr<Graph> ReadNDE(int options) {
 
 void WriteNDE(const Graph *g) {
   auto chg = SetupGraphOutput();
+
+  std::vector<size_t> degrees(g->size());
+  {
+    Counter cnt("Computing degrees");
+    for (size_t i = 0; i < g->size(); i++) {
+      for (size_t v : g->neighs(i)) {
+        if (i < v) {
+          degrees[i]++;
+          degrees[v]++;
+        }
+        cnt++;
+      }
+    }
+  }
+
   write(g->size(), '\n');
 
   {
     Counter cnt("Outputting nodes");
     for (size_t i = 0; i < g->size(); i++) {
-      write(i, ' ', g->degree(i), '\n');
+      write(i, ' ', degrees[i], '\n');
       cnt++;
     }
   }
