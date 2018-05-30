@@ -13,9 +13,6 @@ COMMON_HEADERS= \
 	graph/oly_format.hpp util/span.hpp util/assert.hpp util/io.hpp util/strtk.hpp \
 	graph/graph_io.hpp graph/bin_format.hpp
 
-build/pngwriter.o: util/pngwriter.cc util/pngwriter.h
-	${CC} $< -o $@ -c ${CXXFLAGS}
-
 build/io.o: util/io.cpp util/io.hpp util/strtk.hpp util/span.hpp
 	${CC} $< -o $@ -c ${CXXFLAGS}
 
@@ -55,7 +52,7 @@ build/draw_info.o: draw_info.cpp ${COMMON_HEADERS}
 bin/gconvert: build/gconvert.o ${COMMON_OBJECTS}
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
-bin/draw_graph: build/draw_graph.o build/pngwriter.o build/io.o
+bin/draw_graph: build/draw_graph.o build/io.o
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
 bin/degeneracy: build/degeneracy.o ${COMMON_OBJECTS}

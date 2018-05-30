@@ -6,7 +6,7 @@ const char degen_order_file[] = "/degen_order.dat";
 const char rev_degen_order_file[] = "/rev_degen_order.dat";
 const char kcoresize_file[] = "/kcoresize.dat";
 
-const double image_size = 2160;
+constexpr const double image_size = 2160;
 
 const char n_file[] = "/n.dat";
 const char xs_file[] = "/xs.dat";
