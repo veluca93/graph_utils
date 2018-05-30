@@ -73,6 +73,20 @@ int main(int argc, char **argv) {
   const span<const edge_info_t> edge_info = edge_info_mmf.span<edge_info_t>();
 
   {
+    Counter cnt("Drawing normal nodes");
+    for (size_t i = 0; i < N; i++) {
+      if (erased[i])
+        continue;
+      if (!to_highlight[i]) {
+        double color_pos = color_position[i];
+        png.filledcircle(xs[i], ys[i], 0, r0 * (1 - color_pos) + r1 * color_pos,
+                         g0 * (1 - color_pos) + g1 * color_pos,
+                         b0 * (1 - color_pos) + b1 * color_pos);
+        cnt++;
+      }
+    }
+  }
+  {
     Counter cnt("Drawing normal edges");
     for (const edge_info_t &e : edge_info) {
       size_t a = e.a;
@@ -90,24 +104,22 @@ int main(int argc, char **argv) {
     }
   }
 
+  double highlighted_r = 0.74117;
+  double highlighted_g = 0.0;
+  double highlighted_b = 0.69804;
+
   {
-    Counter cnt("Drawing normal nodes");
+    Counter cnt("Drawing highlighted nodes");
     for (size_t i = 0; i < N; i++) {
       if (erased[i])
         continue;
-      if (!to_highlight[i]) {
-        double color_pos = color_position[i];
-        png.filledcircle(xs[i], ys[i], 0, r0 * (1 - color_pos) + r1 * color_pos,
-                         g0 * (1 - color_pos) + g1 * color_pos,
-                         b0 * (1 - color_pos) + b1 * color_pos);
+      if (to_highlight[i]) {
+        png.filledcircle(xs[i], ys[i], 0, highlighted_r, highlighted_g,
+                         highlighted_b);
         cnt++;
       }
     }
   }
-
-  double highlighted_r = 0.74117;
-  double highlighted_g = 0.0;
-  double highlighted_b = 0.69804;
 
   {
     Counter cnt("Drawing highlighted edges");
@@ -119,19 +131,6 @@ int main(int argc, char **argv) {
       if (to_highlight[a] && to_highlight[b]) {
         png.line_blend(xs[a], ys[a], xs[b], ys[b], 0.0625, highlighted_r,
                        highlighted_g, highlighted_b);
-        cnt++;
-      }
-    }
-  }
-
-  {
-    Counter cnt("Drawing highlighted nodes");
-    for (size_t i = 0; i < N; i++) {
-      if (erased[i])
-        continue;
-      if (!to_highlight[i]) {
-        png.filledcircle(xs[i], ys[i], 0, highlighted_r, highlighted_g,
-                         highlighted_b);
         cnt++;
       }
     }
