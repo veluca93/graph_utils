@@ -18,6 +18,9 @@ public:
   virtual size_t size() const = 0;
   virtual size_t degree(size_t i) const = 0;
   virtual span<const size_t> neighs(size_t i) const = 0;
+  virtual span<const size_t> offset_data() const = 0;
+  virtual span<const size_t> edge_data() const = 0;
+  virtual size_t edges() const { return edge_data().size(); };
 };
 
 class InMemoryGraph : public Graph {
@@ -33,6 +36,12 @@ public:
   }
   span<const size_t> neighs(size_t i) const final {
     return span<const size_t>(neighs_.data() + neigh_start_[i], degree(i));
+  }
+  virtual span<const size_t> offset_data() const final {
+    return span<const size_t>(neigh_start_.data(), neigh_start_.size());
+  }
+  virtual span<const size_t> edge_data() const final {
+    return span<const size_t>(neighs_.data(), neighs_.size());
   }
 
 private:

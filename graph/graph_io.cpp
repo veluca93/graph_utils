@@ -8,9 +8,17 @@ DEFINE_string(output_format, "",
               "Format to be written to the output (leave empty to autodetect)");
 
 std::map<std::string, std::function<std::unique_ptr<Graph>(int)>> readers{
-    {"nde", ReadNDE}, {"tsv", ReadTSV}, {"oly", ReadOLY}, {"el", ReadEL}};
+    {"nde", ReadNDE},
+    {"tsv", ReadTSV},
+    {"oly", ReadOLY},
+    {"el", ReadEL},
+    {"bin", ReadBIN}};
 std::map<std::string, std::function<void(const Graph *g)>> writers{
-    {"nde", WriteNDE}, {"tsv", WriteTSV}, {"oly", WriteOLY}, {"el", WriteEL}};
+    {"nde", WriteNDE},
+    {"tsv", WriteTSV},
+    {"oly", WriteOLY},
+    {"el", WriteEL},
+    {"bin", WriteBIN}};
 
 static bool ValidateInputFormat(const char *flagname,
                                 const std::string &value) {

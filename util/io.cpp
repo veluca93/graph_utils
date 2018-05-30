@@ -1,20 +1,28 @@
 #include "io.hpp"
 #include "assert.hpp"
+#include <fcntl.h>
+#include <gflags/gflags.h>
 #include <iomanip>
 #include <iostream>
 #include <stdio.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+DEFINE_bool(populate_cache, true,
+            "Read a memory mapping as soon as it is created");
 
 static const size_t buf_size = 1 << 16;
 
-static char buf[buf_size + 1] = {};
+static char buf[buf_size] = {};
 static size_t buf_position = 0;
 
 static FILE *outfile = stdout;
 static FILE *infile = stdin;
 
 static void flush() {
-  buf[buf_position] = 0;
-  fputs(buf, outfile);
+  fwrite(buf, 1, buf_position, outfile);
   buf_position = 0;
 }
 
@@ -86,14 +94,19 @@ void AddToBuffer(char c) {
     flush();
   }
 }
-void AddToBuffer(const std::string &s) {
-  for (char c : s) {
-    buf[buf_position++] = c;
-  }
-  if (buf_position > buf_size) {
-    flush();
+
+void AddToBuffer(const char *data, size_t len) {
+  for (size_t i = 0; i < len; i++) {
+    buf[buf_position++] = data[i];
+    if (buf_position > buf_size) {
+      flush();
+    }
   }
 }
+
+void AddToBuffer(span<const char> s) { AddToBuffer(s.begin(), s.size()); }
+
+void AddToBuffer(const std::string &s) { AddToBuffer(s.c_str(), s.size()); }
 
 template <> void write(const char &param) { AddToBuffer(param); }
 
@@ -149,3 +162,21 @@ void Counter::operator++(int) {
   }
 }
 Counter::~Counter() { msg(base_msg_, cnt_, start_, '\n'); }
+
+MemoryMappedFile::MemoryMappedFile(const std::string &filename) {
+  struct stat st;
+  assert_m(stat(filename.c_str(), &st) == 0, strerror(errno));
+  size_ = st.st_size;
+  fd_ = open(filename.c_str(), O_RDONLY, 0);
+  auto flags = MAP_SHARED;
+  if (FLAGS_populate_cache) {
+    flags |= MAP_POPULATE;
+  }
+  data_ = mmap(NULL, size_, PROT_READ, flags, fd_, 0);
+  assert_e(data_ != MAP_FAILED);
+}
+
+MemoryMappedFile::~MemoryMappedFile() {
+  munmap(data_, size_);
+  close(fd_);
+}

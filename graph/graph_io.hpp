@@ -1,5 +1,6 @@
 #ifndef GRAPH_IO_HPP
 #define GRAPH_IO_HPP
+#include "bin_format.hpp"
 #include "el_format.hpp"
 #include "nde_format.hpp"
 #include "oly_format.hpp"

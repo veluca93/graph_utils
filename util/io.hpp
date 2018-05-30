@@ -1,9 +1,11 @@
 #ifndef IO_HPP
 #define IO_HPP
+#include "span.hpp"
 #include "strtk.hpp"
 #include <chrono>
 
 void AddToBuffer(const std::string &s);
+void AddToBuffer(span<const char> s);
 void AddToBuffer(char c);
 
 template <typename T> void write(const T &param) {
@@ -15,7 +17,6 @@ void write(const First &first, const Args &... args) {
   write(first);
   write(args...);
 }
-
 void SetOutputFile(const std::string &filename);
 
 class ChangeOutputFile {
@@ -42,6 +43,46 @@ public:
 
 private:
   FILE *saved_input_file;
+};
+
+template <typename T> void write_span(span<T> s) {
+  AddToBuffer(span<const char>(s));
+}
+template <typename T>
+void span_to_file(const std::string &filename, span<T> s) {
+  ChangeOutputFile chg(filename);
+  write_span(s);
+}
+template <typename T>
+void span_to_file(const std::string &filename, const std::vector<T> &v) {
+  ChangeOutputFile chg(filename);
+  write_span(span<T>(v));
+}
+
+class MemoryMappedFile {
+public:
+  MemoryMappedFile(const std::string &filename);
+  ~MemoryMappedFile();
+  MemoryMappedFile(const MemoryMappedFile &) = delete;
+  void operator=(const MemoryMappedFile &) = delete;
+  MemoryMappedFile(MemoryMappedFile &&) = default;
+  MemoryMappedFile &operator=(MemoryMappedFile &&) = default;
+  template <typename T> const T *data() const {
+    assert_e(size_ % sizeof(T) == 0);
+    return (const T *)data_;
+  }
+  template <typename T> size_t size() const {
+    assert_e(size_ % sizeof(T) == 0);
+    return size_ / sizeof(T);
+  }
+  template <typename T> span<const T> span() const {
+    return ::span<const T>(data<T>(), size<T>());
+  }
+
+private:
+  size_t size_;
+  void *data_;
+  int fd_;
 };
 
 size_t nextInt(bool comments = false);
