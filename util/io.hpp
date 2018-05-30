@@ -15,6 +15,35 @@ void write(const First &first, const Args &... args) {
   write(first);
   write(args...);
 }
+
+void SetOutputFile(const std::string &filename);
+
+class ChangeOutputFile {
+public:
+  ChangeOutputFile(const std::string &new_file);
+  ~ChangeOutputFile();
+  ChangeOutputFile(const ChangeOutputFile &) = delete;
+  void operator=(const ChangeOutputFile &) = delete;
+  ChangeOutputFile(ChangeOutputFile &&) = default;
+  ChangeOutputFile &operator=(ChangeOutputFile &&) = default;
+
+private:
+  FILE *saved_output_file;
+};
+
+class ChangeInputFile {
+public:
+  ChangeInputFile(const std::string &new_file);
+  ~ChangeInputFile();
+  ChangeInputFile(const ChangeInputFile &) = delete;
+  void operator=(const ChangeInputFile &) = delete;
+  ChangeInputFile(ChangeInputFile &&) = default;
+  ChangeInputFile &operator=(ChangeInputFile &&) = default;
+
+private:
+  FILE *saved_input_file;
+};
+
 size_t nextInt(bool comments = false);
 
 class Counter {

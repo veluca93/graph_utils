@@ -1,4 +1,5 @@
 #include "io.hpp"
+#include "assert.hpp"
 #include <iomanip>
 #include <iostream>
 #include <stdio.h>
@@ -8,12 +9,75 @@ static const size_t buf_size = 1 << 16;
 static char buf[buf_size + 1] = {};
 static size_t buf_position = 0;
 
-static void init_output() {}
+static FILE *outfile = stdout;
+static FILE *infile = stdin;
 
 static void flush() {
   buf[buf_position] = 0;
-  std::cout << buf;
+  fputs(buf, outfile);
   buf_position = 0;
+}
+
+void SetOutputFile(const std::string &filename) {
+  flush();
+  if (outfile != stdout) {
+    fclose(outfile);
+  }
+  if (filename == "") {
+    outfile = stdout;
+  } else {
+    outfile = fopen(filename.c_str(), "w");
+    assert_m(outfile, strerror(errno));
+  }
+}
+
+ChangeOutputFile::ChangeOutputFile(const std::string &new_file) {
+  flush();
+  saved_output_file = outfile;
+  if (new_file == "") {
+    outfile = stdout;
+  } else {
+    outfile = fopen(new_file.c_str(), "w");
+    assert_m(outfile, strerror(errno));
+  }
+}
+ChangeOutputFile::~ChangeOutputFile() {
+  flush();
+  if (outfile != stdout) {
+    fclose(outfile);
+  }
+  outfile = saved_output_file;
+}
+
+void SetInputFile(const std::string &filename) {
+  flush();
+  if (infile != stdin) {
+    fclose(infile);
+  }
+  if (filename == "") {
+    infile = stdin;
+  } else {
+    infile = fopen(filename.c_str(), "r");
+    assert_m(infile, strerror(errno));
+  }
+}
+
+ChangeInputFile::ChangeInputFile(const std::string &new_file) {
+  flush();
+  saved_input_file = infile;
+  if (new_file == "") {
+    infile = stdin;
+  } else {
+    infile = fopen(new_file.c_str(), "r");
+    assert_m(infile, strerror(errno));
+  }
+}
+ChangeInputFile::~ChangeInputFile() {
+  flush();
+  if (infile != stdin) {
+    fclose(infile);
+  }
+  infile = saved_input_file;
 }
 
 void AddToBuffer(char c) {
@@ -35,37 +99,34 @@ template <> void write(const char &param) { AddToBuffer(param); }
 
 size_t nextInt(bool comments) {
   size_t n = 0;
-  int ch = getchar_unlocked();
+  int ch = getc_unlocked(infile);
   if (comments && ch == '#') {
     while (ch != EOF && ch != '\n')
-      ch = getchar_unlocked();
+      ch = getc_unlocked(infile);
   }
   while (ch != EOF && (ch < '0' || ch > '9')) {
-    ch = getchar_unlocked();
+    ch = getc_unlocked(infile);
     if (comments && ch == '#') {
       while (ch != EOF && ch != '\n')
-        ch = getchar_unlocked();
+        ch = getc_unlocked(infile);
     }
   }
   if (ch == EOF)
     return EOF;
   while (ch >= '0' && ch <= '9') {
     n = 10 * n + ch - '0';
-    ch = getchar_unlocked();
+    ch = getc_unlocked(infile);
   }
   if (comments && ch == '#') {
     while (ch != EOF && ch != '\n')
-      ch = getchar_unlocked();
+      ch = getc_unlocked(infile);
   }
   return n;
 }
 
 class IOSetup {
 public:
-  IOSetup() {
-    std::ios_base::sync_with_stdio(false);
-    init_output();
-  }
+  IOSetup() {}
   ~IOSetup() { flush(); }
 };
 

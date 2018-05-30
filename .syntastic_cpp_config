@@ -2,3 +2,4 @@
 -Wall
 -I/usr/include/freetype2
 -Iutil
+-Igraph
