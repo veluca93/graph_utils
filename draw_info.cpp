@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
   // const size_t *kcoresize = kcoresize_mmf.data<size_t>();
   std::vector<double> xs(g->size());
   std::vector<double> ys(g->size());
-  std::vector<double> color_position(g->size());
+  std::vector<uint8_t> color_position(g->size()); // Fixed point value
   std::mt19937 rng;
   std::uniform_real_distribution<> dist(0.66, 1.5);
   size_t N = g->size();
@@ -38,8 +38,8 @@ int main(int argc, char **argv) {
       ys[perm[i]] = y * 100;
       double coef = (double)i / N;
       double param = 10.;
-      color_position[perm[i]] =
-          (pow(2, param * (coef - 1)) - pow(2, -param)) / (1 - pow(2, -param));
+      color_position[perm[i]] = (pow(2, param * (coef - 1)) - pow(2, -param)) /
+                                (1 - pow(2, -param)) * 255;
       cnt++;
     }
   }
@@ -79,6 +79,12 @@ int main(int argc, char **argv) {
       cnt++;
     }
   }
+  std::vector<int> xs_i(g->size());
+  std::vector<int> ys_i(g->size());
+  for (size_t i = 0; i < g->size(); i++) {
+    xs_i[i] = xs[i];
+    ys_i[i] = ys[i];
+  }
   std::vector<edge_info_t> sorted_edges(g->edges());
   {
     Counter cnt("Computing edge info positions");
@@ -110,9 +116,9 @@ int main(int argc, char **argv) {
     Counter cnt("Saving data");
     span_to_file(FLAGS_save + n_file, span<size_t>(&N, 1));
     cnt++;
-    span_to_file(FLAGS_save + xs_file, xs);
+    span_to_file(FLAGS_save + xs_file, xs_i);
     cnt++;
-    span_to_file(FLAGS_save + ys_file, ys);
+    span_to_file(FLAGS_save + ys_file, ys_i);
     cnt++;
     span_to_file(FLAGS_save + color_position_file, color_position);
     cnt++;

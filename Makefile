@@ -1,5 +1,5 @@
-CXXFLAGS=-O3 -Wall -std=c++14 -I/usr/include/freetype2/ -Iutil -Igraph -flto -g 
-LDFLAGS=-lpng -lfreetype -flto -lgflags -ltcmalloc -Wl,--as-needed
+CXXFLAGS=-O3 -Wall -std=c++14 -Iutil -Igraph -flto -g
+LDFLAGS=-flto -lgflags -Wl,--as-needed # -ltcmalloc
 CC=g++
 
 all: bin/gconvert bin/draw_graph bin/degeneracy bin/draw_info
@@ -11,7 +11,7 @@ COMMON_OBJECTS= \
 COMMON_HEADERS= \
 	graph/el_format.hpp graph/tsv_format.hpp graph/nde_format.hpp graph/graph.hpp \
 	graph/oly_format.hpp util/span.hpp util/assert.hpp util/io.hpp util/strtk.hpp \
-	graph/graph_io.hpp graph/bin_format.hpp
+	graph/graph_io.hpp graph/bin_format.hpp util/common_defs.hpp
 
 build/io.o: util/io.cpp util/io.hpp util/strtk.hpp util/span.hpp
 	${CC} $< -o $@ -c ${CXXFLAGS}

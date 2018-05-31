@@ -1,5 +1,6 @@
 #ifndef COMMON_DEFS
 #define COMMON_DEFS
+#include <stdint.h>
 #include <stdlib.h>
 
 const char degen_order_file[] = "/degen_order.dat";
@@ -17,7 +18,7 @@ const char edge_info_file[] = "/edge_info.dat";
 struct __attribute__((packed)) edge_info_t {
   size_t a;
   size_t b;
-  double cpos;
+  uint8_t cpos;
 };
 
 #endif

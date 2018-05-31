@@ -19,60 +19,56 @@ DEFINE_uint64(degen_thresh, 0,
 DEFINE_double(fraction_to_delete, 0.0,
               "How many to-be-deleted nodes should actually be deleted");
 
-uint8_t img[(int)image_size][(int)image_size][3];
+const constexpr size_t block_size = 1;
+const constexpr int img_size = image_size;
 
-void draw_point(int x, int y, double opacity, double r, double g, double b) {
-  img[x][y][0] = (1 - opacity) * img[x][y][0] + opacity * r * 255;
-  img[x][y][1] = (1 - opacity) * img[x][y][1] + opacity * g * 255;
-  img[x][y][2] = (1 - opacity) * img[x][y][2] + opacity * b * 255;
+struct __attribute__((packed)) pixel_draw {
+  int x;
+  int y;
+  uint8_t opacity;
+  uint8_t r, g, b;
+};
+
+constexpr size_t coord(int x, int y) {
+  // TODO change layout?
+  return img_size * 3 * x + 3 * y;
 }
 
-void draw_line(int xfrom, int yfrom, int xto, int yto, double opacity, double r,
-               double g, double b) {
-  int dy = yto - yfrom;
-  int dx = xto - xfrom;
-  int stepx, stepy;
+constexpr size_t max_coord(int image_size) {
+  return coord((image_size + block_size - 1) / block_size * block_size,
+               (image_size + block_size - 1) / block_size * block_size);
+}
 
-  if (dy < 0) {
-    dy = -dy;
-    stepy = -1;
-  } else {
-    stepy = 1;
-  }
+uint8_t img[max_coord(image_size)];
 
-  if (dx < 0) {
-    dx = -dx;
-    stepx = -1;
-  } else {
-    stepx = 1;
-  }
-  dy <<= 1; // dy is now 2*dy
-  dx <<= 1; // dx is now 2*dx
+void draw_point(int x, int y, uint32_t opacity, uint8_t r, uint8_t g,
+                uint8_t b) {
+  size_t base_coord = coord(x, y);
+  img[base_coord] = ((255 - opacity) * img[base_coord] + opacity * r) / 255;
+  img[base_coord + 1] =
+      ((255 - opacity) * img[base_coord + 1] + opacity * g) / 255;
+  img[base_coord + 2] =
+      ((255 - opacity) * img[base_coord + 2] + opacity * b) / 255;
+}
 
-  draw_point(xfrom, yfrom, opacity, r, g, b);
+void draw_line(int x0, int y0, int x1, int y1, uint32_t opacity, uint8_t r,
+               uint8_t g, uint8_t b) {
+  int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+  int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+  int err = (dx > dy ? dx : -dy) / 2, e2;
 
-  if (dx > dy) {
-    int fraction = dy - (dx >> 1);
-
-    while (xfrom != xto) {
-      if (fraction >= 0) {
-        yfrom += stepy;
-        fraction -= dx;
-      }
-      xfrom += stepx;
-      fraction += dy;
-      draw_point(xfrom, yfrom, opacity, r, g, b);
+  for (;;) {
+    draw_point(x0, y0, opacity, r, g, b);
+    if (x0 == x1 && y0 == y1)
+      break;
+    e2 = err;
+    if (e2 > -dx) {
+      err -= dy;
+      x0 += sx;
     }
-  } else {
-    int fraction = dx - (dy >> 1);
-    while (yfrom != yto) {
-      if (fraction >= 0) {
-        xfrom += stepx;
-        fraction -= dy;
-      }
-      yfrom += stepy;
-      fraction += dx;
-      draw_point(xfrom, yfrom, opacity, r, g, b);
+    if (e2 < dy) {
+      err += dx;
+      y0 += sy;
     }
   }
 }
@@ -121,19 +117,19 @@ int main(int argc, char **argv) {
     }
   }
 
-  double r0 = 0.0;
-  double g0 = 0.01568;
-  double b0 = 0.15686;
-  double r1 = 0.0;
-  double g1 = 0.30980;
-  double b1 = 0.57255;
+  uint8_t r0 = 0x00;
+  uint8_t g0 = 0x04;
+  uint8_t b0 = 0x28;
+  uint8_t r1 = 0x00;
+  uint8_t g1 = 0x4f;
+  uint8_t b1 = 0x92;
 
   MemoryMappedFile xs_mmf(FLAGS_drawing + xs_file);
-  const double *xs = xs_mmf.data<double>();
+  const int *xs = xs_mmf.data<int>();
   MemoryMappedFile ys_mmf(FLAGS_drawing + ys_file);
-  const double *ys = ys_mmf.data<double>();
+  const int *ys = ys_mmf.data<int>();
   MemoryMappedFile color_position_mmf(FLAGS_drawing + color_position_file);
-  const double *color_position = color_position_mmf.data<double>();
+  const uint8_t *color_position = color_position_mmf.data<uint8_t>();
   MemoryMappedFile edge_info_mmf(FLAGS_drawing + edge_info_file);
   const span<const edge_info_t> edge_info = edge_info_mmf.span<edge_info_t>();
 
@@ -144,10 +140,11 @@ int main(int argc, char **argv) {
       if (erased[i])
         continue;
       if (!to_highlight[i]) {
-        double color_pos = color_position[i];
-        draw_point(xs[i], ys[i], 1, r0 * (1 - color_pos) + r1 * color_pos,
-                   g0 * (1 - color_pos) + g1 * color_pos,
-                   b0 * (1 - color_pos) + b1 * color_pos);
+        uint32_t color_pos = color_position[i];
+        uint8_t rc = (r0 * (255 - color_pos) + r1 * color_pos) / 255;
+        uint8_t gc = (g0 * (255 - color_pos) + g1 * color_pos) / 255;
+        uint8_t bc = (b0 * (255 - color_pos) + b1 * color_pos) / 255;
+        draw_point(xs[i], ys[i], 255, rc, gc, bc);
         cnt++;
       }
     }
@@ -160,19 +157,19 @@ int main(int argc, char **argv) {
       if (erased[a] || erased[b])
         continue;
       if (!(to_highlight[a] && to_highlight[b])) {
-        double color_pos = e.cpos;
-        draw_line(xs[a], ys[a], xs[b], ys[b], 0.0625,
-                  r0 * (1 - color_pos) + r1 * color_pos,
-                  g0 * (1 - color_pos) + g1 * color_pos,
-                  b0 * (1 - color_pos) + b1 * color_pos);
+        uint32_t color_pos = e.cpos;
+        uint8_t rc = (r0 * (255 - color_pos) + r1 * color_pos) / 255;
+        uint8_t gc = (g0 * (255 - color_pos) + g1 * color_pos) / 255;
+        uint8_t bc = (b0 * (255 - color_pos) + b1 * color_pos) / 255;
+        draw_line(xs[a], ys[a], xs[b], ys[b], 16, rc, gc, bc);
         cnt++;
       }
     }
   }
 
-  double highlighted_r = 0.74117;
-  double highlighted_g = 0.0;
-  double highlighted_b = 0.69804;
+  uint8_t highlighted_r = 0xbd;
+  uint8_t highlighted_g = 0x00;
+  uint8_t highlighted_b = 0xa2;
 
   {
     Counter cnt("Drawing highlighted nodes");
@@ -195,13 +192,23 @@ int main(int argc, char **argv) {
       if (erased[a] || erased[b])
         continue;
       if (to_highlight[a] && to_highlight[b]) {
-        draw_line(xs[a], ys[a], xs[b], ys[b], 0.0625, highlighted_r,
-                  highlighted_g, highlighted_b);
+        draw_line(xs[a], ys[a], xs[b], ys[b], 16, highlighted_r, highlighted_g,
+                  highlighted_b);
         cnt++;
       }
     }
   }
   ChangeOutputFile chg(FLAGS_output);
   write("P6\n", (int)image_size, ' ', (int)image_size, "\n255\n");
-  write_span(span<char>((char *)img, sizeof(img)));
+  {
+    Counter cnt("Writing pixels");
+    for (size_t x = 0; x < (size_t)image_size; x++) {
+      for (size_t y = 0; y < (size_t)image_size; y++) {
+        size_t base_coord = coord(x, y);
+        write_bytes(img[base_coord]);
+        write_bytes(img[base_coord + 1]);
+        write_bytes(img[base_coord + 2]);
+      }
+    }
+  }
 }

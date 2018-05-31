@@ -48,6 +48,9 @@ private:
 template <typename T> void write_span(span<T> s) {
   AddToBuffer(span<const char>(s));
 }
+template <typename T> void write_bytes(const T &t) {
+  AddToBuffer(span<const char>((const char *)&t, sizeof(T)));
+}
 template <typename T>
 void span_to_file(const std::string &filename, span<T> s) {
   ChangeOutputFile chg(filename);
