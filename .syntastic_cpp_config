@@ -3,3 +3,4 @@
 -I/usr/include/freetype2
 -Iutil
 -Igraph
+-I/home/luca/include

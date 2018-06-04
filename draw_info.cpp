@@ -1,5 +1,6 @@
 #include "common_defs.hpp"
 #include "graph_io.hpp"
+#include <gflags/gflags_completions.h>
 #include <iomanip>
 #include <random>
 

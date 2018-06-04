@@ -1,8 +1,11 @@
 CXXFLAGS=-O3 -Wall -std=c++14 -Iutil -Igraph -flto -g
+SDSL_CXXFLAGS=-I ~/include -L ~/lib
 LDFLAGS=-flto -lgflags -Wl,--as-needed # -ltcmalloc
+SDSL_LDFLAGS=-lsdsl -ldivsufsort -ldivsufsort64
 CC=g++
 
-all: bin/gconvert bin/draw_graph bin/degeneracy bin/draw_info
+all: bin/gconvert bin/draw_graph bin/degeneracy bin/draw_info bin/compressed_adj_list \
+	bin/gpermute
 
 COMMON_OBJECTS= \
 	build/io.o build/graph.o build/nde_format.o build/el_format.o build/tsv_format.o \
@@ -40,6 +43,9 @@ build/graph_io.o: graph/graph_io.cpp ${COMMON_HEADERS}
 build/gconvert.o: gconvert.cpp ${COMMON_HEADERS}
 	${CC} $< -o $@ -c ${CXXFLAGS}
 
+build/gpermute.o: gpermute.cpp ${COMMON_HEADERS}
+	${CC} $< -o $@ -c ${CXXFLAGS}
+
 build/draw_graph.o: draw_graph.cpp ${COMMON_HEADERS}
 	${CC} $< -o $@ -c ${CXXFLAGS}
 
@@ -48,6 +54,9 @@ build/degeneracy.o: degeneracy.cpp ${COMMON_HEADERS}
 
 build/draw_info.o: draw_info.cpp ${COMMON_HEADERS}
 	${CC} $< -o $@ -c ${CXXFLAGS}
+
+build/compressed_adj_list.o: compressed_adj_list.cpp ${COMMON_HEADERS}
+	${CC} $< -o $@ -c ${CXXFLAGS} ${SDSL_CXXFLAGS}
 
 bin/gconvert: build/gconvert.o ${COMMON_OBJECTS}
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
@@ -61,6 +70,11 @@ bin/degeneracy: build/degeneracy.o ${COMMON_OBJECTS}
 bin/draw_info: build/draw_info.o ${COMMON_OBJECTS}
 	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
 
+bin/gpermute: build/gpermute.o ${COMMON_OBJECTS}
+	${CC} $^ -o $@ ${CXXFLAGS} ${LDFLAGS}
+
+bin/compressed_adj_list: build/compressed_adj_list.o ${COMMON_OBJECTS}
+	${CC} $^ -o $@ ${CXXFLAGS} ${SDSL_CXXFLAGS} ${LDFLAGS} ${SDSL_LDFLAGS}
 
 clean:
 	rm -f bin/* build/*

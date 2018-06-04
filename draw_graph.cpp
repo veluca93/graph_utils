@@ -1,6 +1,7 @@
 #include "common_defs.hpp"
 #include "io.hpp"
 #include <gflags/gflags.h>
+#include <gflags/gflags_completions.h>
 #include <iomanip>
 #include <random>
 
