@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   std::unique_ptr<Graph> g = ReadGraph();
   size_t bits_size = 0;
+  int32_t log2_N = 63 - __builtin_clzll(g->size());
   std::vector<size_t> temp;
   {
     Counter cnt("Computing compressed adj lists");
@@ -26,9 +27,13 @@ int main(int argc, char **argv) {
       temp.clear();
       // TODO: really, really slow. Only works with numbers <= 2**63 (not really
       // an issue)
+      if (g->degree(i) < 2) {
+        bits_size += log2_N * g->degree(i);
+        continue;
+      }
       temp.push_back(0);
       for (size_t v : g->neighs(i)) {
-        for (int j = 0; j < 63; j++) {
+        for (int j = 0; j < log2_N + 1; j++) {
           temp.push_back((reverseBits(v >> j) >> j) + (1 << (64 - j)) - 1);
         }
       }
