@@ -1,6 +1,15 @@
 #include "common_defs.hpp"
 #include "graph_io.hpp"
 #include <sdsl/int_vector.hpp>
+#include <sdsl/rrr_vector.hpp>
+
+#ifndef BLOCK_SIZE
+#define BLOCK_SIZE 31
+#endif
+
+#ifndef RANK_SAMPLE_DENS
+#define RANK_SAMPLE_DENS 32
+#endif
 
 using namespace sdsl;
 
@@ -19,9 +28,10 @@ int main(int argc, char **argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   std::unique_ptr<Graph> g = ReadGraph();
   size_t bits_size = 0;
+  size_t compressed_size = 0;
   uint32_t log2_N = 63 - __builtin_clzll(g->size());
   std::vector<size_t> temp;
-  std::vector<bool> out;
+  std::vector<bool> out, final_out;
   {
     Counter cnt("Computing compressed adj lists");
     for (size_t i = 0; i < g->size(); i++) {
@@ -29,6 +39,7 @@ int main(int argc, char **argv) {
       out.clear();
       if (g->degree(i) < 2) {
         bits_size += log2_N * g->degree(i);
+        compressed_size += log2_N * g->degree(i);
         continue;
       }
       for (size_t v : g->neighs(i))
@@ -55,12 +66,28 @@ int main(int argc, char **argv) {
         temp.resize(std::unique(temp.begin(), temp.end()) - temp.begin());
       }
       std::reverse(out.begin(), out.end());
-      bits_size += out.size();
-
+      for (size_t i = 0; i < out.size(); i++) {
+        final_out.push_back(out[i]);
+      }
       cnt++;
     }
   }
-  std::cerr << "Number of edges: " << g->edges() << std::endl;
-  std::cerr << "Bits size:       " << bits_size << std::endl;
-  std::cerr << "Bits per edge:   " << 1.0 * bits_size / g->edges() << std::endl;
+  sdsl::int_vector<1> real_out;
+  real_out.resize(final_out.size());
+  for (size_t i = 0; i < final_out.size(); i++) {
+    real_out[i] = final_out[i];
+  }
+  bits_size += size_in_bytes(real_out) * 8;
+  using rrr_vector =
+      sdsl::rrr_vector<BLOCK_SIZE, int_vector<>, RANK_SAMPLE_DENS>;
+  rrr_vector compressed(real_out);
+  compressed_size += sdsl::size_in_bytes(compressed) * 8;
+
+  std::cerr << "Number of edges:           " << g->edges() << std::endl;
+  std::cerr << "Bits size:                 " << bits_size << std::endl;
+  std::cerr << "Bits per edge:             " << 1.0 * bits_size / g->edges()
+            << std::endl;
+  std::cerr << "Compressed size:           " << compressed_size << std::endl;
+  std::cerr << "Compressed bits per edge:  "
+            << 1.0 * compressed_size / g->edges() << std::endl;
 }
