@@ -1,5 +1,11 @@
 #include "graph_io.hpp"
+#include "bel_format.hpp"
+#include "bin_format.hpp"
+#include "el_format.hpp"
+#include "nde_format.hpp"
+#include "oly_format.hpp"
 #include "strtk.hpp"
+#include "tsv_format.hpp"
 #include <map>
 
 DEFINE_string(input_format, "",
@@ -8,17 +14,11 @@ DEFINE_string(output_format, "",
               "Format to be written to the output (leave empty to autodetect)");
 
 std::map<std::string, std::function<std::unique_ptr<Graph>(int)>> readers{
-    {"nde", ReadNDE},
-    {"tsv", ReadTSV},
-    {"oly", ReadOLY},
-    {"el", ReadEL},
-    {"bin", ReadBIN}};
+    {"nde", ReadNDE}, {"tsv", ReadTSV}, {"oly", ReadOLY},
+    {"el", ReadEL},   {"bel", ReadBEL}, {"bin", ReadBIN}};
 std::map<std::string, std::function<void(const Graph *g)>> writers{
-    {"nde", WriteNDE},
-    {"tsv", WriteTSV},
-    {"oly", WriteOLY},
-    {"el", WriteEL},
-    {"bin", WriteBIN}};
+    {"nde", WriteNDE}, {"tsv", WriteTSV}, {"oly", WriteOLY},
+    {"el", WriteEL},   {"bel", WriteBEL}, {"bin", WriteBIN}};
 
 static bool ValidateInputFormat(const char *flagname,
                                 const std::string &value) {
@@ -55,6 +55,7 @@ std::unique_ptr<Graph> ReadGraph(int options) {
   assert_m(readers.count(format), "Invalid input format");
   return readers[format](options);
 }
+
 void WriteGraph(const Graph *g) {
   std::string format = FLAGS_output_format;
   if (format.empty()) {

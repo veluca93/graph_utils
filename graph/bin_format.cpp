@@ -2,34 +2,39 @@
 #include "io.hpp"
 #include <vector>
 
+const constexpr size_t fingerprint = (sizeof(edge_t) << 4) | sizeof(node_t);
+
 class MappedGraph : public Graph {
 public:
   MappedGraph(const std::string &file) : f_(file) {
-    const size_t *data = f_.data<size_t>();
-    N = data[0];
-    neigh_start_ = data + 1;
-    neighs_ = data + N + 2;
+    const node_t *data = f_.data<node_t>();
+    assert_m(fingerprint == *(size_t *)data,
+             "This binary file was created with different node/edge sizes!");
+    N = data[sizeof(size_t) / sizeof(node_t)];
+    neigh_start_ = (edge_t *)data + 1 + sizeof(size_t) / sizeof(node_t);
+    neighs_ = data + (sizeof(edge_t) / sizeof(node_t)) * N + 2 +
+              sizeof(size_t) / sizeof(node_t);
   }
-  size_t size() const { return N; }
-  size_t degree(size_t i) const final {
-    assert_e(i < size());
-    return neigh_start_[i + 1] - neigh_start_[i];
+  node_t size() const { return N; }
+  node_t degree(size_t i) const final {
+    assert_m(i < size(), std::to_string(i) + " < " + std::to_string(size()));
+    return node_t(neigh_start_[i + 1] - neigh_start_[i]);
   }
-  span<const size_t> neighs(size_t i) const final {
-    return span<const size_t>(neighs_ + neigh_start_[i], degree(i));
+  span<const node_t> neighs(size_t i) const final {
+    return span<const node_t>(neighs_ + neigh_start_[i], degree(i));
   }
-  virtual span<const size_t> offset_data() const final {
-    return span<const size_t>(neigh_start_, N);
+  virtual span<const edge_t> offset_data() const final {
+    return span<const edge_t>(neigh_start_, N + 1);
   }
-  virtual span<const size_t> edge_data() const final {
-    return span<const size_t>(neighs_, neigh_start_[N]);
+  virtual span<const node_t> edge_data() const final {
+    return span<const node_t>(neighs_, neigh_start_[N]);
   }
 
 private:
   MemoryMappedFile f_;
-  size_t N;
-  const size_t *neigh_start_;
-  const size_t *neighs_;
+  node_t N;
+  const edge_t *neigh_start_;
+  const node_t *neighs_;
 };
 
 std::unique_ptr<Graph> ReadBIN(int options) {
@@ -46,7 +51,8 @@ void WriteBIN(const Graph *g) {
   {
     Counter cnt("Writing output");
     size_t N = g->size();
-    write_span(span<const size_t>(&N, 1));
+    write_span(span<const size_t>(&fingerprint, 1));
+    write_span(span<const node_t>((node_t *)&N, 1));
     cnt++;
     write_span(g->offset_data());
     cnt++;

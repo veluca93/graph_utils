@@ -5,7 +5,7 @@
 std::unique_ptr<Graph> ReadNDE(int options) {
   auto chg = SetupGraphInput();
   size_t N = nextInt();
-  std::vector<std::vector<size_t>> graph(N);
+  std::vector<std::vector<node_t>> graph(N);
   {
     size_t a, b;
     Counter cnt("Reading nodes");
@@ -27,10 +27,10 @@ std::unique_ptr<Graph> ReadNDE(int options) {
       if (a == b)
         continue;
       if (a < b || options & GraphReadOptions::BIDIRECTIONAL) {
-        graph[a].push_back(b);
+        graph[a].emplace_back(b);
       }
       if (a > b || options & GraphReadOptions::BIDIRECTIONAL) {
-        graph[b].push_back(a);
+        graph[b].emplace_back(a);
       }
       cnt++;
     }

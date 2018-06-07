@@ -6,7 +6,7 @@ std::unique_ptr<Graph> ReadOLY(int options) {
   auto chg = SetupGraphInput();
   /*size_t N =*/nextInt();
   size_t M = nextInt();
-  std::vector<std::pair<size_t, size_t>> edges;
+  std::vector<std::pair<node_t, node_t>> edges;
   edges.reserve((options & GraphReadOptions::BIDIRECTIONAL) ? 2 * M : M);
   {
     size_t a, b;

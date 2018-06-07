@@ -10,7 +10,7 @@ ChangeOutputFile SetupGraphOutput() {
 
 ChangeInputFile SetupGraphInput() { return ChangeInputFile(FLAGS_input_file); }
 
-InMemoryGraph::InMemoryGraph(std::vector<std::pair<size_t, size_t>> &&edges) {
+InMemoryGraph::InMemoryGraph(std::vector<std::pair<node_t, node_t>> &&edges) {
   size_t N = 0;
   {
     Counter cnt("Computing maximum node");
@@ -26,11 +26,11 @@ InMemoryGraph::InMemoryGraph(std::vector<std::pair<size_t, size_t>> &&edges) {
 
   neigh_start_.resize(N + 1);
   neighs_.resize(edges.size());
-  neigh_start_[0] = 0;
+  std::fill(neigh_start_.begin(), neigh_start_.end(), edge_t{0});
   {
     Counter cnt("Copying edges");
     for (size_t i = 0; i < edges.size(); i++) {
-      neigh_start_[edges[i].first + 1]++;
+      neigh_start_[edges[i].first + 1].value++;
       neighs_[i] = edges[i].second;
       cnt++;
     }
@@ -38,21 +38,21 @@ InMemoryGraph::InMemoryGraph(std::vector<std::pair<size_t, size_t>> &&edges) {
   {
     Counter cnt("Computing degrees");
     for (size_t i = 1; i < N + 1; i++) {
-      neigh_start_[i] += neigh_start_[i - 1];
+      neigh_start_[i].value += neigh_start_[i - 1].value;
       cnt++;
     }
   }
 }
 
-InMemoryGraph::InMemoryGraph(std::vector<std::vector<size_t>> &&adj) {
+InMemoryGraph::InMemoryGraph(std::vector<std::vector<node_t>> &&adj) {
   size_t accum_degree = 0;
   neigh_start_.resize(adj.size() + 1);
-  neigh_start_[0] = 0;
+  neigh_start_[0] = edge_t{0};
   {
     Counter cnt("Computing degrees");
     for (size_t i = 0; i < adj.size(); i++) {
       accum_degree += adj[i].size();
-      neigh_start_[i + 1] = accum_degree;
+      neigh_start_[i + 1].value = accum_degree;
       cnt++;
     }
   }
@@ -67,6 +67,6 @@ InMemoryGraph::InMemoryGraph(std::vector<std::vector<size_t>> &&adj) {
     }
   }
   // Clear out the vector
-  std::vector<std::vector<size_t>> v;
+  std::vector<std::vector<node_t>> v;
   std::swap(adj, v);
 }

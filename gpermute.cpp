@@ -8,11 +8,11 @@ DEFINE_string(
 int main(int argc, char **argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   MemoryMappedFile perm_mmf(FLAGS_permutation);
-  const size_t *perm = perm_mmf.data<size_t>();
+  const node_t *perm = perm_mmf.data<node_t>();
 
   std::unique_ptr<Graph> g = ReadGraph();
 
-  std::vector<std::pair<size_t, size_t>> new_edges;
+  std::vector<std::pair<node_t, node_t>> new_edges;
   new_edges.reserve(g->edges());
   {
     Counter cnt("Creating new edges");

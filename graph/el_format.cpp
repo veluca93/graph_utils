@@ -4,7 +4,7 @@
 
 std::unique_ptr<Graph> ReadEL(int options) {
   auto chg = SetupGraphInput();
-  std::vector<std::pair<size_t, size_t>> edges;
+  std::vector<std::pair<node_t, node_t>> edges;
   {
     size_t a, b;
     Counter cnt("Reading edges");
