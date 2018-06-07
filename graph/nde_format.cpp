@@ -1,6 +1,8 @@
-#include "nde_format.hpp"
+#include "graph.hpp"
 #include "io.hpp"
 #include <vector>
+
+namespace {
 
 std::unique_ptr<Graph> ReadNDE(int options) {
   auto chg = SetupGraphInput();
@@ -85,3 +87,7 @@ void WriteNDE(const Graph *g) {
     }
   }
 }
+
+GraphRegisterFormat r("nde", ReadNDE, WriteNDE);
+
+} // namespace

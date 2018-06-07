@@ -1,5 +1,5 @@
 #include "common_defs.hpp"
-#include "graph_io.hpp"
+#include "graph.hpp"
 #include <sdsl/int_vector.hpp>
 #include <sdsl/rank_support_v.hpp>
 
@@ -49,7 +49,7 @@ size_t intersection_size(size_t t1s, size_t t1e, size_t t2s, size_t t2e) {
 int main(int argc, char **argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   // TODO: fix this for no bidirectional
-  std::unique_ptr<Graph> g = ReadGraph(GraphReadOptions::BIDIRECTIONAL);
+  std::unique_ptr<Graph> g = Graph::Read(GraphReadOptions::BIDIRECTIONAL);
   size_t bits_size = 0;
   uint32_t log2_N = 63 - __builtin_clzll(g->size());
   std::vector<size_t> temp;

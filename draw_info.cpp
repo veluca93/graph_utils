@@ -1,5 +1,5 @@
 #include "common_defs.hpp"
-#include "graph_io.hpp"
+#include "graph.hpp"
 #include <gflags/gflags_completions.h>
 #include <iomanip>
 #include <random>
@@ -12,7 +12,7 @@ DEFINE_string(degeneracy, "",
 
 int main(int argc, char **argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
-  std::unique_ptr<Graph> g = ReadGraph();
+  std::unique_ptr<Graph> g = Graph::Read();
 
   MemoryMappedFile perm_mmf(FLAGS_degeneracy + degen_order_file);
   // MemoryMappedFile rev_perm_mmf(FLAGS_degeneracy + rev_degen_order_file);
@@ -93,8 +93,8 @@ int main(int argc, char **argv) {
     for (size_t a = 0; a < N; a++) {
       for (size_t b : g->neighs(a)) {
         i++;
-        sorted_edges[i].a = a;
-        sorted_edges[i].b = b;
+        sorted_edges[i].a = node_t(a);
+        sorted_edges[i].b = node_t(b);
         sorted_edges[i].cpos = color_position[a];
         if (sorted_edges[i].cpos > color_position[b]) {
           sorted_edges[i].cpos = color_position[b];

@@ -1,7 +1,8 @@
-#include "tsv_format.hpp"
+#include "graph.hpp"
 #include "io.hpp"
 #include <vector>
 
+namespace {
 std::unique_ptr<Graph> ReadTSV(int options) {
   auto chg = SetupGraphInput();
   std::vector<std::pair<node_t, node_t>> edges;
@@ -50,3 +51,6 @@ void WriteTSV(const Graph *g) {
     }
   }
 }
+
+GraphRegisterFormat r("tsv", ReadTSV, WriteTSV);
+} // namespace

@@ -3,6 +3,30 @@
 
 DEFINE_string(input_file, "", "File to read the graph from");
 DEFINE_string(output_file, "", "Which file the graph should be written to");
+DEFINE_string(input_format, "",
+              "Format to be read from input (leave empty to autodetect)");
+DEFINE_string(output_format, "",
+              "Format to be written to the output (leave empty to autodetect)");
+static bool ValidateInputFormat(const char *flagname,
+                                const std::string &value) {
+  if (value == "")
+    return true;
+  if (Graph::HasReader(value))
+    return true;
+  std::cout << "Invalid value for --" << flagname << ": " << value << std::endl;
+  return false;
+}
+static bool ValidateOutputFormat(const char *flagname,
+                                 const std::string &value) {
+  if (value == "")
+    return true;
+  if (Graph::HasWriter(value))
+    return true;
+  std::cout << "Invalid value for --" << flagname << ": " << value << std::endl;
+  return false;
+}
+DEFINE_validator(input_format, &ValidateInputFormat);
+DEFINE_validator(output_format, &ValidateOutputFormat);
 
 ChangeOutputFile SetupGraphOutput() {
   return ChangeOutputFile(FLAGS_output_file);
@@ -69,4 +93,41 @@ InMemoryGraph::InMemoryGraph(std::vector<std::vector<node_t>> &&adj) {
   // Clear out the vector
   std::vector<std::vector<node_t>> v;
   std::swap(adj, v);
+}
+
+GraphRegisterFormat::GraphRegisterFormat(const std::string &ext,
+                                         Graph::read_graph_t reader,
+                                         Graph::write_graph_t writer) {
+  Graph::Readers()[ext] = reader;
+  Graph::Writers()[ext] = writer;
+}
+
+std::unique_ptr<Graph> Graph::Read(int options) {
+  std::string format = FLAGS_input_format;
+  if (format.empty()) {
+    for (const auto &kv : Readers()) {
+      if (strtk::ends_with(kv.first, FLAGS_input_file)) {
+        format = kv.first;
+        break;
+      }
+    }
+  }
+  assert_m(!format.empty(), "Could not detect input format");
+  assert_m(Readers().count(format), "Invalid input format");
+  return Readers()[format](options);
+}
+
+void Graph::Write(const Graph *g) {
+  std::string format = FLAGS_output_format;
+  if (format.empty()) {
+    for (const auto &kv : Writers()) {
+      if (strtk::ends_with(kv.first, FLAGS_output_file)) {
+        format = kv.first;
+        break;
+      }
+    }
+  }
+  assert_m(!format.empty(), "Could not detect output format");
+  assert_m(Writers().count(format), "Invalid output format");
+  return Writers()[format](g);
 }

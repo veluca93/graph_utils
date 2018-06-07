@@ -1,6 +1,8 @@
-#include "el_format.hpp"
+#include "graph.hpp"
 #include "io.hpp"
 #include <vector>
+
+namespace {
 
 std::unique_ptr<Graph> ReadEL(int options) {
   auto chg = SetupGraphInput();
@@ -48,3 +50,7 @@ void WriteEL(const Graph *g) {
     }
   }
 }
+
+GraphRegisterFormat r("el", ReadEL, WriteEL);
+
+} // namespace

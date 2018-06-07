@@ -1,5 +1,6 @@
 #ifndef COMMON_DEFS
 #define COMMON_DEFS
+#include "graph.hpp"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -16,8 +17,8 @@ const char color_position_file[] = "/color_position.dat";
 const char edge_info_file[] = "/edge_info.dat";
 
 struct __attribute__((packed)) edge_info_t {
-  size_t a;
-  size_t b;
+  node_t a;
+  node_t b;
   uint8_t cpos;
 };
 

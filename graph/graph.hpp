@@ -42,6 +42,8 @@ DECLARE_string(output_file);
 ChangeOutputFile SetupGraphOutput() __attribute__((warn_unused_result));
 ChangeInputFile SetupGraphInput() __attribute__((warn_unused_result));
 
+class GraphRegisterFormat;
+
 class Graph {
 public:
   virtual node_t size() const = 0;
@@ -50,6 +52,26 @@ public:
   virtual span<const edge_t> offset_data() const = 0;
   virtual span<const node_t> edge_data() const = 0;
   virtual edge_t edges() const { return edge_t{(EDGE_T)edge_data().size()}; };
+
+  using read_graph_t = std::function<std::unique_ptr<Graph>(int)>;
+  using write_graph_t = std::function<void(const Graph *)>;
+
+private:
+  static auto &Readers() {
+    static std::map<std::string, read_graph_t> readers_;
+    return readers_;
+  }
+  static auto &Writers() {
+    static std::map<std::string, write_graph_t> writers_;
+    return writers_;
+  }
+
+public:
+  static std::unique_ptr<Graph> Read(int options = GraphReadOptions::DEFAULT);
+  static void Write(const Graph *);
+  static bool HasReader(const std::string &r) { return Readers().count(r); }
+  static bool HasWriter(const std::string &w) { return Writers().count(w); }
+  friend class GraphRegisterFormat;
 };
 
 class InMemoryGraph : public Graph {
@@ -76,6 +98,12 @@ public:
 private:
   std::vector<edge_t> neigh_start_;
   std::vector<node_t> neighs_;
+};
+
+class GraphRegisterFormat {
+public:
+  GraphRegisterFormat(const std::string &ext, Graph::read_graph_t reader,
+                      Graph::write_graph_t writer);
 };
 
 #endif

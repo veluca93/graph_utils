@@ -1,5 +1,5 @@
 #include "common_defs.hpp"
-#include "graph_io.hpp"
+#include "graph.hpp"
 #include <immintrin.h>
 
 #ifdef __SSE4_1__
@@ -68,7 +68,7 @@ size_t intersection_size(span<const node_t> a, span<const node_t> b) {
 
 int main(int argc, char **argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
-  std::unique_ptr<Graph> g = ReadGraph();
+  std::unique_ptr<Graph> g = Graph::Read();
   size_t triangle_count = 0;
   {
     Counter cnt("Triangle counting");

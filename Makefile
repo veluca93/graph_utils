@@ -9,12 +9,11 @@ all: bin/gconvert bin/draw_graph bin/degeneracy bin/draw_info bin/compressed_adj
 
 COMMON_OBJECTS= \
 	build/io.o build/graph.o build/nde_format.o build/el_format.o build/tsv_format.o \
-	build/oly_format.o build/bin_format.o build/graph_io.o build/bel_format.o
+	build/oly_format.o build/bin_format.o build/bel_format.o
 
 COMMON_HEADERS= \
-	graph/el_format.hpp graph/tsv_format.hpp graph/nde_format.hpp graph/graph.hpp \
-	graph/oly_format.hpp util/span.hpp util/assert.hpp util/io.hpp util/strtk.hpp \
-	graph/graph_io.hpp graph/bin_format.hpp graph/bel_format.hpp util/common_defs.hpp
+	util/span.hpp util/assert.hpp util/io.hpp util/strtk.hpp \
+	graph/graph.hpp util/common_defs.hpp
 
 build/io.o: util/io.cpp util/io.hpp util/strtk.hpp util/span.hpp
 	${CC} $< -o $@ -c ${CXXFLAGS}

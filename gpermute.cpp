@@ -1,5 +1,5 @@
 #include "common_defs.hpp"
-#include "graph_io.hpp"
+#include "graph.hpp"
 
 DEFINE_string(
     permutation, "",
@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
   MemoryMappedFile perm_mmf(FLAGS_permutation);
   const node_t *perm = perm_mmf.data<node_t>();
 
-  std::unique_ptr<Graph> g = ReadGraph();
+  std::unique_ptr<Graph> g = Graph::Read();
 
   std::vector<std::pair<node_t, node_t>> new_edges;
   new_edges.reserve(g->edges());
@@ -38,5 +38,5 @@ int main(int argc, char **argv) {
   }
 
   InMemoryGraph h(std::move(new_edges));
-  WriteGraph(&h);
+  Graph::Write(&h);
 }

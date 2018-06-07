@@ -1,6 +1,8 @@
-#include "bin_format.hpp"
+#include "graph.hpp"
 #include "io.hpp"
 #include <vector>
+
+namespace {
 
 const constexpr size_t fingerprint = (sizeof(edge_t) << 4) | sizeof(node_t);
 
@@ -60,3 +62,6 @@ void WriteBIN(const Graph *g) {
     cnt++;
   }
 }
+GraphRegisterFormat r("bin", ReadBIN, WriteBIN);
+
+} // namespace

@@ -1,6 +1,8 @@
-#include "oly_format.hpp"
+#include "graph.hpp"
 #include "io.hpp"
 #include <vector>
+
+namespace {
 
 std::unique_ptr<Graph> ReadOLY(int options) {
   auto chg = SetupGraphInput();
@@ -64,3 +66,6 @@ void WriteOLY(const Graph *g) {
     }
   }
 }
+
+GraphRegisterFormat r("oly", ReadOLY, WriteOLY);
+} // namespace

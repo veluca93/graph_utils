@@ -1,5 +1,5 @@
 #include "common_defs.hpp"
-#include "graph_io.hpp"
+#include "graph.hpp"
 #include <sdsl/int_vector.hpp>
 #include <sdsl/rrr_vector.hpp>
 
@@ -26,7 +26,7 @@ unsigned int reverseBits(unsigned int n) {
 
 int main(int argc, char **argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
-  std::unique_ptr<Graph> g = ReadGraph();
+  std::unique_ptr<Graph> g = Graph::Read();
   size_t bits_size = 0;
   size_t compressed_size = 0;
   uint32_t log2_N = 63 - __builtin_clzll(g->size());

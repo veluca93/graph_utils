@@ -1,5 +1,5 @@
 #include "common_defs.hpp"
-#include "graph_io.hpp"
+#include "graph.hpp"
 #include <gflags/gflags_completions.h>
 #include <iomanip>
 
@@ -52,7 +52,7 @@ get_perm(const Graph *graph) {
 
 int main(int argc, char **argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
-  std::unique_ptr<Graph> g = ReadGraph(GraphReadOptions::BIDIRECTIONAL);
+  std::unique_ptr<Graph> g = Graph::Read(GraphReadOptions::BIDIRECTIONAL);
   auto pp = get_perm(g.get());
   size_t max_degen = 0;
   for (size_t i = 0; i < g->size(); i++) {

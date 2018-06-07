@@ -1,6 +1,8 @@
-#include "el_format.hpp"
+#include "graph.hpp"
 #include "io.hpp"
 #include <vector>
+
+namespace {
 
 std::unique_ptr<Graph> ReadBEL(int options) {
   std::vector<std::pair<node_t, node_t>> edges;
@@ -34,3 +36,7 @@ std::unique_ptr<Graph> ReadBEL(int options) {
 }
 
 void WriteBEL(const Graph *g) { throw std::runtime_error("Not implemented"); }
+
+GraphRegisterFormat r("bel", ReadBEL, WriteBEL);
+
+} // namespace
