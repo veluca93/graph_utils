@@ -4,3 +4,4 @@
 -Iutil
 -Igraph
 -I/home/luca/include
+-march=native
