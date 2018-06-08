@@ -1,7 +1,9 @@
+#include "commands.hpp"
 #include "common_defs.hpp"
 #include "graph.hpp"
 #include <immintrin.h>
 
+namespace {
 #ifdef __SSE4_1__
 static const int32_t cyclic_shift1_sse = _MM_SHUFFLE(0, 3, 2, 1);
 static const int32_t cyclic_shift2_sse = _MM_SHUFFLE(1, 0, 3, 2);
@@ -66,8 +68,7 @@ size_t intersection_size(span<const node_t> a, span<const node_t> b) {
   return sz;
 }
 
-int main(int argc, char **argv) {
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+void TriangleCountingMain() {
   std::unique_ptr<Graph> g = Graph::Read();
   size_t triangle_count = 0;
   {
@@ -83,3 +84,9 @@ int main(int argc, char **argv) {
   std::cerr << "Triangles:   " << triangle_count << std::endl;
   std::cerr << "Computation: " << computation_size << std::endl;
 }
+void TriangleCounting(CLI::App *app) {
+  auto sub = app->add_subcommand("triangle_counting", "Counts triangles");
+  sub->set_callback([]() { TriangleCountingMain(); });
+}
+RegisterCommand r(TriangleCounting);
+} // namespace

@@ -1,38 +1,12 @@
 #include "graph.hpp"
+#include "flags.hpp"
 #include "io.hpp"
 
-DEFINE_string(input_file, "", "File to read the graph from");
-DEFINE_string(output_file, "", "Which file the graph should be written to");
-DEFINE_string(input_format, "",
-              "Format to be read from input (leave empty to autodetect)");
-DEFINE_string(output_format, "",
-              "Format to be written to the output (leave empty to autodetect)");
-static bool ValidateInputFormat(const char *flagname,
-                                const std::string &value) {
-  if (value == "")
-    return true;
-  if (Graph::HasReader(value))
-    return true;
-  std::cout << "Invalid value for --" << flagname << ": " << value << std::endl;
-  return false;
-}
-static bool ValidateOutputFormat(const char *flagname,
-                                 const std::string &value) {
-  if (value == "")
-    return true;
-  if (Graph::HasWriter(value))
-    return true;
-  std::cout << "Invalid value for --" << flagname << ": " << value << std::endl;
-  return false;
-}
-DEFINE_validator(input_format, &ValidateInputFormat);
-DEFINE_validator(output_format, &ValidateOutputFormat);
-
 ChangeOutputFile SetupGraphOutput() {
-  return ChangeOutputFile(FLAGS_output_file);
+  return ChangeOutputFile(flags::output_file);
 }
 
-ChangeInputFile SetupGraphInput() { return ChangeInputFile(FLAGS_input_file); }
+ChangeInputFile SetupGraphInput() { return ChangeInputFile(flags::input_file); }
 
 InMemoryGraph::InMemoryGraph(std::vector<std::pair<node_t, node_t>> &&edges) {
   size_t N = 0;
@@ -103,10 +77,10 @@ GraphRegisterFormat::GraphRegisterFormat(const std::string &ext,
 }
 
 std::unique_ptr<Graph> Graph::Read(int options) {
-  std::string format = FLAGS_input_format;
+  std::string format = flags::input_format;
   if (format.empty()) {
     for (const auto &kv : Readers()) {
-      if (strtk::ends_with(kv.first, FLAGS_input_file)) {
+      if (strtk::ends_with(kv.first, flags::input_file)) {
         format = kv.first;
         break;
       }
@@ -118,10 +92,10 @@ std::unique_ptr<Graph> Graph::Read(int options) {
 }
 
 void Graph::Write(const Graph *g) {
-  std::string format = FLAGS_output_format;
+  std::string format = flags::output_format;
   if (format.empty()) {
     for (const auto &kv : Writers()) {
-      if (strtk::ends_with(kv.first, FLAGS_output_file)) {
+      if (strtk::ends_with(kv.first, flags::output_file)) {
         format = kv.first;
         break;
       }
@@ -130,4 +104,18 @@ void Graph::Write(const Graph *g) {
   assert_m(!format.empty(), "Could not detect output format");
   assert_m(Writers().count(format), "Invalid output format");
   return Writers()[format](g);
+}
+
+std::set<std::string> Graph::ReadFormats() {
+  std::set<std::string> ret;
+  for (auto p : Readers())
+    ret.insert(p.first);
+  return ret;
+}
+
+std::set<std::string> Graph::WriteFormats() {
+  std::set<std::string> ret;
+  for (auto p : Writers())
+    ret.insert(p.first);
+  return ret;
 }

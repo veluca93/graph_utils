@@ -1,20 +1,11 @@
+#include "commands.hpp"
 #include "common_defs.hpp"
 #include "graph.hpp"
 #include <sdsl/int_vector.hpp>
 #include <sdsl/rank_support_v.hpp>
 
+namespace {
 using namespace sdsl;
-
-unsigned int reverseBits(unsigned int n) {
-  unsigned int rev = 0;
-  while (n > 0) {
-    rev <<= 1;
-    if ((n & 1) == 1)
-      rev ^= 1;
-    n >>= 1;
-  }
-  return rev;
-}
 sdsl::int_vector<1> real_out;
 sdsl::int_vector<1>::rank_1_type rank_support;
 size_t computation_size = 0;
@@ -46,8 +37,7 @@ size_t intersection_size(size_t t1s, size_t t1e, size_t t2s, size_t t2e) {
                            ::rank_support(t2s), 0, (t2e - t2s) / 2, 0);
 }
 
-int main(int argc, char **argv) {
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+void CompressedTriangleCountingMain() {
   // TODO: fix this for no bidirectional
   std::unique_ptr<Graph> g = Graph::Read(GraphReadOptions::BIDIRECTIONAL);
   size_t bits_size = 0;
@@ -130,3 +120,11 @@ int main(int argc, char **argv) {
   std::cerr << "Triangles:   " << triangle_count << std::endl;
   std::cerr << "Computation: " << computation_size << std::endl;
 }
+
+void CompressedTriangleCounting(CLI::App *app) {
+  auto sub = app->add_subcommand("compressed_triangle_counting",
+                                 "Counts triangles with compressed adj lists");
+  sub->set_callback([]() { CompressedTriangleCountingMain(); });
+}
+RegisterCommand r(CompressedTriangleCounting);
+} // namespace

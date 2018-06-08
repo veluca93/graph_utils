@@ -1,7 +1,7 @@
 #include "io.hpp"
 #include "assert.hpp"
+#include "flags.hpp"
 #include <fcntl.h>
-#include <gflags/gflags.h>
 #include <iomanip>
 #include <iostream>
 #include <stdio.h>
@@ -9,9 +9,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-DEFINE_bool(populate_cache, true,
-            "Read a memory mapping as soon as it is created");
 
 static const size_t buf_size = 1 << 16;
 
@@ -169,7 +166,7 @@ MemoryMappedFile::MemoryMappedFile(const std::string &filename) {
   size_ = st.st_size;
   fd_ = open(filename.c_str(), O_RDONLY, 0);
   auto flags = MAP_SHARED;
-  if (FLAGS_populate_cache) {
+  if (!flags::dont_populate_cache) {
     flags |= MAP_POPULATE;
   }
   data_ = mmap(NULL, size_, PROT_READ, flags, fd_, 0);

@@ -1,7 +1,9 @@
+#include "commands.hpp"
 #include "common_defs.hpp"
 #include "graph.hpp"
 #include <immintrin.h>
 
+namespace {
 #ifdef __SSE4_1__
 static const int32_t cyclic_shift1_sse = _MM_SHUFFLE(0, 3, 2, 1);
 static const int32_t cyclic_shift2_sse = _MM_SHUFFLE(1, 0, 3, 2);
@@ -122,14 +124,14 @@ size_t intersection_size(span<const node_t> a, span<const node_t> b) {
   return intersection_size_same(a, b);
 }
 
-int main(int argc, char **argv) {
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+void TriangleCountingFingerMain() {
   std::unique_ptr<Graph> g = Graph::Read();
   size_t triangle_count = 0;
   {
     Counter cnt("Triangle counting");
     for (uint32_t i = 0; i < g->size(); i++) {
       for (uint32_t n : g->neighs(i)) {
+        assert_e(i < n);
         triangle_count += intersection_size(g->neighs(i), g->neighs(n));
         cnt++;
       }
@@ -138,3 +140,10 @@ int main(int argc, char **argv) {
   std::cerr << "Triangles:   " << triangle_count << std::endl;
   std::cerr << "Computation: " << computation_size << std::endl;
 }
+void TriangleCountingFinger(CLI::App *app) {
+  auto sub = app->add_subcommand("triangle_counting_finger",
+                                 "Counts triangles with fingers");
+  sub->set_callback([]() { TriangleCountingFingerMain(); });
+}
+RegisterCommand r(TriangleCountingFinger);
+} // namespace

@@ -1,3 +1,4 @@
+#include "commands.hpp"
 #include "common_defs.hpp"
 #include "graph.hpp"
 #include <sdsl/int_vector.hpp>
@@ -11,21 +12,10 @@
 #define RANK_SAMPLE_DENS 32
 #endif
 
+namespace {
 using namespace sdsl;
 
-unsigned int reverseBits(unsigned int n) {
-  unsigned int rev = 0;
-  while (n > 0) {
-    rev <<= 1;
-    if ((n & 1) == 1)
-      rev ^= 1;
-    n >>= 1;
-  }
-  return rev;
-}
-
-int main(int argc, char **argv) {
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+void CompressedAdjListMain() {
   std::unique_ptr<Graph> g = Graph::Read();
   size_t bits_size = 0;
   size_t compressed_size = 0;
@@ -91,3 +81,10 @@ int main(int argc, char **argv) {
   std::cerr << "Compressed bits per edge:  "
             << 1.0 * compressed_size / g->edges() << std::endl;
 }
+
+void CompressedAdjList(CLI::App *app) {
+  auto sub = app->add_subcommand("compressed_adj_list", "Compresses adj lists");
+  sub->set_callback([]() { CompressedAdjListMain(); });
+}
+RegisterCommand r(CompressedAdjList);
+} // namespace

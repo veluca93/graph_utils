@@ -1,22 +1,19 @@
+#include "commands.hpp"
 #include "common_defs.hpp"
 #include "graph.hpp"
-#include <gflags/gflags_completions.h>
 #include <iomanip>
 #include <random>
 
-DEFINE_string(save, "",
-              "Folder where the produced drawing info should be saved");
+namespace {
+std::string save;
+std::string degeneracy;
 
-DEFINE_string(degeneracy, "",
-              "Folder where the degeneracy info has been saved");
-
-int main(int argc, char **argv) {
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+void DrawingInfoMain() {
   std::unique_ptr<Graph> g = Graph::Read();
 
-  MemoryMappedFile perm_mmf(FLAGS_degeneracy + degen_order_file);
-  // MemoryMappedFile rev_perm_mmf(FLAGS_degeneracy + rev_degen_order_file);
-  // MemoryMappedFile kcoresize_mmf(FLAGS_degeneracy + kcoresize_file);
+  MemoryMappedFile perm_mmf(degeneracy + degen_order_file);
+  // MemoryMappedFile rev_perm_mmf(degeneracy + rev_degen_order_file);
+  // MemoryMappedFile kcoresize_mmf(degeneracy + kcoresize_file);
   const size_t *perm = perm_mmf.data<size_t>();
   // const size_t *rev_perm = rev_perm_mmf.data<size_t>();
   // const size_t *kcoresize = kcoresize_mmf.data<size_t>();
@@ -111,19 +108,32 @@ int main(int argc, char **argv) {
               });
     cnt++;
   }
-  if (!FLAGS_save.empty()) {
-    std::string command = "mkdir -p " + FLAGS_save;
+  if (!save.empty()) {
+    std::string command = "mkdir -p " + save;
     assert_m(system(command.c_str()) == 0, command);
     Counter cnt("Saving data");
-    span_to_file(FLAGS_save + n_file, span<size_t>(&N, 1));
+    span_to_file(save + n_file, span<size_t>(&N, 1));
     cnt++;
-    span_to_file(FLAGS_save + xs_file, xs_i);
+    span_to_file(save + xs_file, xs_i);
     cnt++;
-    span_to_file(FLAGS_save + ys_file, ys_i);
+    span_to_file(save + ys_file, ys_i);
     cnt++;
-    span_to_file(FLAGS_save + color_position_file, color_position);
+    span_to_file(save + color_position_file, color_position);
     cnt++;
-    span_to_file(FLAGS_save + edge_info_file, sorted_edges);
+    span_to_file(save + edge_info_file, sorted_edges);
     cnt++;
   }
 }
+
+void DrawingInfo(CLI::App *app) {
+  auto sub = app->add_subcommand("drawing_info",
+                                 "Produces info for drawing the given graph");
+  sub->add_option("--degeneracy,-d", degeneracy,
+                  "Folder where the degeneracy info has been saved")
+      ->required();
+  sub->add_option("--save", save,
+                  "Folder where the drawing info will be saved");
+  sub->set_callback([]() { DrawingInfoMain(); });
+}
+RegisterCommand r(DrawingInfo);
+} // namespace

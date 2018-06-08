@@ -1,3 +1,4 @@
+#include "flags.hpp"
 #include "graph.hpp"
 #include "io.hpp"
 #include <vector>
@@ -42,10 +43,10 @@ private:
 std::unique_ptr<Graph> ReadBIN(int options) {
   assert_m(!(options & GraphReadOptions::BIDIRECTIONAL),
            "Reading bidirectional graphs in BIN format is not supported.");
-  assert_m(!FLAGS_input_file.empty(),
+  assert_m(!flags::input_file.empty(),
            "Reading from stdin in BIN format is not supported.");
   Counter cnt("Reading data");
-  return std::make_unique<MappedGraph>(FLAGS_input_file);
+  return std::make_unique<MappedGraph>(flags::input_file);
 }
 
 void WriteBIN(const Graph *g) {

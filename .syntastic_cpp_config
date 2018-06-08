@@ -3,5 +3,7 @@
 -I/usr/include/freetype2
 -Iutil
 -Igraph
+-Iexternal
+-Icommands
 -I/home/luca/include
 -march=native

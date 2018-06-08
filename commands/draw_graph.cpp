@@ -1,24 +1,17 @@
+#include "commands.hpp"
 #include "common_defs.hpp"
 #include "io.hpp"
-#include <gflags/gflags.h>
-#include <gflags/gflags_completions.h>
 #include <iomanip>
 #include <random>
 
-DEFINE_string(drawing, "", "Folder where the drawing info has been saved");
-
-DEFINE_string(degeneracy, "",
-              "Folder where the degeneracy info has been saved");
-
-DEFINE_string(output, "output.ppm", "Where the produced image is saved");
-DEFINE_string(nodes_output, "",
-              "Where the number of nodes in this frame is saved");
-DEFINE_string(highlight, "",
-              "File containing the nodes that should be highlighted");
-DEFINE_uint64(degen_thresh, 0,
-              "Mark as to-be-deleted nodes with less then this degeneracy");
-DEFINE_double(fraction_to_delete, 0.0,
-              "How many to-be-deleted nodes should actually be deleted");
+namespace {
+std::string nodes_output;
+std::string drawing;
+std::string highlight;
+std::string degeneracy;
+uint64_t degen_thresh;
+double fraction_to_delete;
+std::string output = "output.ppm";
 
 const constexpr size_t block_size = 1;
 const constexpr int img_size = image_size;
@@ -74,13 +67,12 @@ void draw_line(int x0, int y0, int x1, int y1, uint32_t opacity, uint8_t r,
   }
 }
 
-int main(int argc, char **argv) {
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
-  size_t N = *MemoryMappedFile(FLAGS_drawing + n_file).data<size_t>();
+void DrawingMain() {
+  size_t N = *MemoryMappedFile(drawing + n_file).data<size_t>();
 
   std::vector<bool> to_highlight(N);
-  if (!FLAGS_highlight.empty()) {
-    std::ifstream fin(FLAGS_highlight);
+  if (!highlight.empty()) {
+    std::ifstream fin(highlight);
     while (fin) {
       size_t a;
       fin >> a;
@@ -90,13 +82,13 @@ int main(int argc, char **argv) {
 
   std::vector<bool> erased(N);
 
-  MemoryMappedFile kcoresize_mmf(FLAGS_degeneracy + kcoresize_file);
-  MemoryMappedFile perm_mmf(FLAGS_degeneracy + degen_order_file);
+  MemoryMappedFile kcoresize_mmf(degeneracy + kcoresize_file);
+  MemoryMappedFile perm_mmf(degeneracy + degen_order_file);
   const size_t *kcoresize = kcoresize_mmf.data<size_t>();
   const size_t *perm = perm_mmf.data<size_t>();
   size_t first_to_keep = N;
   for (size_t i = 0; i < N; i++) {
-    if (kcoresize[i] > FLAGS_degen_thresh && first_to_keep == N) {
+    if (kcoresize[i] > degen_thresh && first_to_keep == N) {
       first_to_keep = i;
     }
   }
@@ -105,15 +97,15 @@ int main(int argc, char **argv) {
     size_t left_nodes = 0;
     Counter cnt("Erasing nodes");
     for (size_t i = 0; i < N; i++) {
-      if (i < FLAGS_fraction_to_delete * first_to_keep) {
+      if (i < fraction_to_delete * first_to_keep) {
         erased[perm[i]] = true;
         cnt++;
       } else {
         left_nodes++;
       }
     }
-    if (!FLAGS_nodes_output.empty()) {
-      ChangeOutputFile chg(FLAGS_nodes_output);
+    if (!nodes_output.empty()) {
+      ChangeOutputFile chg(nodes_output);
       write(left_nodes, '\n');
     }
   }
@@ -125,13 +117,13 @@ int main(int argc, char **argv) {
   uint8_t g1 = 0x4f;
   uint8_t b1 = 0x92;
 
-  MemoryMappedFile xs_mmf(FLAGS_drawing + xs_file);
+  MemoryMappedFile xs_mmf(drawing + xs_file);
   const int *xs = xs_mmf.data<int>();
-  MemoryMappedFile ys_mmf(FLAGS_drawing + ys_file);
+  MemoryMappedFile ys_mmf(drawing + ys_file);
   const int *ys = ys_mmf.data<int>();
-  MemoryMappedFile color_position_mmf(FLAGS_drawing + color_position_file);
+  MemoryMappedFile color_position_mmf(drawing + color_position_file);
   const uint8_t *color_position = color_position_mmf.data<uint8_t>();
-  MemoryMappedFile edge_info_mmf(FLAGS_drawing + edge_info_file);
+  MemoryMappedFile edge_info_mmf(drawing + edge_info_file);
   const span<const edge_info_t> edge_info = edge_info_mmf.span<edge_info_t>();
 
   std::fill((uint8_t *)img, (uint8_t *)img + sizeof(img), 255);
@@ -199,7 +191,7 @@ int main(int argc, char **argv) {
       }
     }
   }
-  ChangeOutputFile chg(FLAGS_output);
+  ChangeOutputFile chg(output);
   write("P6\n", (int)image_size, ' ', (int)image_size, "\n255\n");
   {
     Counter cnt("Writing pixels");
@@ -213,3 +205,26 @@ int main(int argc, char **argv) {
     }
   }
 }
+
+void Drawing(CLI::App *app) {
+  auto sub =
+      app->add_subcommand("drawing", "Produces a drawing of the given graph");
+  sub->add_option("--highlight", highlight,
+                  "File containing the nodes that should be highlighted");
+  sub->add_option("--nodes-output", output,
+                  "Where the number of nodes in this frame is saved");
+  sub->add_option("--degen-thresh", degen_thresh,
+                  "Mark as to-be-deleted nodes with less then this degeneracy");
+  sub->add_option("--fraction-to-delete", fraction_to_delete,
+                  "How many to-be-deleted nodes should actually be deleted");
+
+  sub->option_defaults()->required();
+  sub->add_option("--degeneracy,-d", degeneracy,
+                  "Folder where the degeneracy info has been saved");
+  sub->add_option("--drawing", drawing,
+                  "Folder where the drawing info has been saved");
+  sub->add_option("--output", output, "Where the produced image is saved");
+  sub->set_callback([]() { DrawingMain(); });
+}
+RegisterCommand r(Drawing);
+} // namespace

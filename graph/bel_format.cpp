@@ -1,3 +1,4 @@
+#include "flags.hpp"
 #include "graph.hpp"
 #include "io.hpp"
 #include <vector>
@@ -9,7 +10,7 @@ std::unique_ptr<Graph> ReadBEL(int options) {
   {
     size_t a, b;
     Counter cnt("Reading edges");
-    MemoryMappedFile f(FLAGS_input_file);
+    MemoryMappedFile f(flags::input_file);
     int m = f.data<int>()[0];
     for (int i = 0; i < m; i++) {
       a = f.data<int>()[2 * i + 1];

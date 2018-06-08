@@ -1,13 +1,12 @@
+#include "commands.hpp"
 #include "common_defs.hpp"
 #include "graph.hpp"
 
-DEFINE_string(
-    permutation, "",
-    "File to read the permutation from (perm[i] is the new label of node i)");
+namespace {
+std::string permutation;
 
-int main(int argc, char **argv) {
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
-  MemoryMappedFile perm_mmf(FLAGS_permutation);
+void PermuteMain() {
+  MemoryMappedFile perm_mmf(permutation);
   const node_t *perm = perm_mmf.data<node_t>();
 
   std::unique_ptr<Graph> g = Graph::Read();
@@ -40,3 +39,14 @@ int main(int argc, char **argv) {
   InMemoryGraph h(std::move(new_edges));
   Graph::Write(&h);
 }
+
+void Permute(CLI::App *app) {
+  auto sub = app->add_subcommand("permute", "Permutes the given graph");
+  sub->add_option("--permutation,-p", permutation,
+                  "File to read the permutation from (perm[i] is the new label "
+                  "of node i)")
+      ->required();
+  sub->set_callback([]() { PermuteMain(); });
+}
+RegisterCommand r(Permute);
+} // namespace

@@ -2,7 +2,6 @@
 #define GRAPH_HPP
 #include "io.hpp"
 #include "span.hpp"
-#include <gflags/gflags.h>
 #include <vector>
 
 #ifndef NODE_T
@@ -36,9 +35,6 @@ static_assert(sizeof(size_t) % sizeof(node_t) == 0,
 
 enum GraphReadOptions { DEFAULT = 0x0, BIDIRECTIONAL = 0x1 };
 
-DECLARE_string(input_file);
-DECLARE_string(output_file);
-
 ChangeOutputFile SetupGraphOutput() __attribute__((warn_unused_result));
 ChangeInputFile SetupGraphInput() __attribute__((warn_unused_result));
 
@@ -71,6 +67,8 @@ public:
   static void Write(const Graph *);
   static bool HasReader(const std::string &r) { return Readers().count(r); }
   static bool HasWriter(const std::string &w) { return Writers().count(w); }
+  static std::set<std::string> ReadFormats();
+  static std::set<std::string> WriteFormats();
   friend class GraphRegisterFormat;
 };
 

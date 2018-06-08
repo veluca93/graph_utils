@@ -1,10 +1,10 @@
+#include "commands.hpp"
 #include "common_defs.hpp"
 #include "graph.hpp"
-#include <gflags/gflags_completions.h>
 #include <iomanip>
 
-DEFINE_string(save, "",
-              "Folder where the produced degeneracy info should be saved");
+namespace {
+std::string save;
 
 std::pair<std::vector<size_t>, std::vector<size_t>>
 get_perm(const Graph *graph) {
@@ -50,8 +50,7 @@ get_perm(const Graph *graph) {
   return {perm, degeneracies};
 }
 
-int main(int argc, char **argv) {
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+void DegeneracyMain() {
   std::unique_ptr<Graph> g = Graph::Read(GraphReadOptions::BIDIRECTIONAL);
   auto pp = get_perm(g.get());
   size_t max_degen = 0;
@@ -78,20 +77,28 @@ int main(int argc, char **argv) {
   for (size_t i = 1; i <= degen_stats.size(); i *= 2)
     std::cerr << std::setw(12) << (degen_stats.rbegin() + i - 1)->second;
   std::cerr << std::endl;
-  if (!FLAGS_save.empty()) {
+  if (!save.empty()) {
     std::vector<size_t> rev_perm(g->size());
     for (size_t i = 0; i < g->size(); i++) {
       assert_m(pp.first[i] < g->size(), std::to_string(pp.first[i]));
       rev_perm[pp.first[i]] = i;
     }
-    std::string command = "mkdir -p " + FLAGS_save;
+    std::string command = "mkdir -p " + save;
     assert_m(system(command.c_str()) == 0, command);
     Counter cnt("Saving data");
-    span_to_file(FLAGS_save + degen_order_file, pp.first);
+    span_to_file(save + degen_order_file, pp.first);
     cnt++;
-    span_to_file(FLAGS_save + rev_degen_order_file, rev_perm);
+    span_to_file(save + rev_degen_order_file, rev_perm);
     cnt++;
-    span_to_file(FLAGS_save + kcoresize_file, pp.second);
+    span_to_file(save + kcoresize_file, pp.second);
     cnt++;
   }
 }
+void Degeneracy(CLI::App *app) {
+  auto sub = app->add_subcommand("degeneracy", "Computes degeneracy");
+  sub->add_option("--save,-s", save,
+                  "Folder where the produced info should be saved");
+  sub->set_callback([]() { DegeneracyMain(); });
+}
+RegisterCommand r(Degeneracy);
+} // namespace
