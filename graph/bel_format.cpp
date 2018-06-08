@@ -18,10 +18,10 @@ std::unique_ptr<Graph> ReadBEL(int options) {
       if (a == b)
         continue;
       if (a < b || options & GraphReadOptions::BIDIRECTIONAL) {
-        edges.emplace_back(a, b);
+        edges.emplace_back(node_t(a), node_t(b));
       }
       if (a > b || options & GraphReadOptions::BIDIRECTIONAL) {
-        edges.emplace_back(b, a);
+        edges.emplace_back(node_t(b), node_t(a));
       }
       cnt++;
     }
