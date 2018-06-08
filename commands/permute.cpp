@@ -21,7 +21,7 @@ void PermuteMain() {
         size_t b = perm[v];
         if (a > b)
           std::swap(a, b);
-        new_edges.emplace_back(a, b);
+        new_edges.emplace_back(node_t(a), node_t(b));
         cnt++;
       }
     }
