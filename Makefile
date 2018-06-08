@@ -4,7 +4,7 @@ CXXFLAGS=\
 SDSL_CXXFLAGS=-I ~/include -L ~/lib
 LDFLAGS=-flto -Wl,--as-needed -march=native -ltcmalloc
 SDSL_LDFLAGS=-lsdsl -ldivsufsort -ldivsufsort64
-CC=g++
+CXX=g++
 
 SRCS=$(wildcard **/*.cpp) $(wildcard *.cpp)
 OBJS=$(SRCS:%.cpp=build/%.o)
@@ -16,14 +16,14 @@ $(shell mkdir -p $(DIRS))
 all: bin/gutil
 
 .deps/%.d: %.cpp Makefile
-	${CC} $< -M -MM -MP -MT $(patsubst .deps/%.d,build/%.o,$@) -o $@ ${CXXFLAGS} \
+	${CXX} $< -M -MM -MP -MT $(patsubst .deps/%.d,build/%.o,$@) -o $@ ${CXXFLAGS} \
 		${SDSL_CXXFLAGS} ${LDFLAGS}
 
 build/%.o: %.cpp .deps/%.d
-	${CC} $< -c -o $@ ${CXXFLAGS} ${SDSL_CXXFLAGS} ${LDFLAGS}
+	${CXX} $< -c -o $@ ${CXXFLAGS} ${SDSL_CXXFLAGS} ${LDFLAGS}
 
 bin/gutil: ${OBJS}
-	${CC} $^ -o $@ ${CXXFLAGS} ${SDSL_CXXFLAGS} ${SDSL_LDFLAGS} ${LDFLAGS}
+	${CXX} $^ -o $@ ${CXXFLAGS} ${SDSL_CXXFLAGS} ${SDSL_LDFLAGS} ${LDFLAGS}
 
 clean:
 	rm -rf bin/ build/ .deps/
