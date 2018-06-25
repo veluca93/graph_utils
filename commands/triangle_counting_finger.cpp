@@ -141,8 +141,9 @@ void TriangleCountingFingerMain() {
   std::cerr << "Computation: " << computation_size << std::endl;
 }
 void TriangleCountingFinger(CLI::App *app) {
-  auto sub = app->add_subcommand("triangle_counting_finger",
-                                 "Counts triangles with fingers");
+  auto sub = app->add_subcommand(
+      "triangle_counting_finger",
+      "Counts triangles with finger search in the adjacency lists");
   sub->set_callback([]() { TriangleCountingFingerMain(); });
 }
 RegisterCommand r(TriangleCountingFinger);
