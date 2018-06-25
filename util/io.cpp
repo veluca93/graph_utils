@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <iostream>
 #include <stdio.h>
-#if defined(__unix__)
+#if defined(__unix__) || defined(__APPLE__)
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -163,7 +163,7 @@ void Counter::operator++(int) {
 Counter::~Counter() { msg(base_msg_, cnt_, start_, '\n'); }
 
 MemoryMappedFile::MemoryMappedFile(const std::string &filename) {
-#ifdef __unix__
+#if defined(__unix__) || defined(__APPLE__)
   struct stat st;
   assert_m(stat(filename.c_str(), &st) == 0, strerror(errno));
   size_ = st.st_size;
@@ -182,6 +182,8 @@ MemoryMappedFile::MemoryMappedFile(const std::string &filename) {
 }
 
 MemoryMappedFile::~MemoryMappedFile() {
+#if defined(__unix__) || defined(__APPLE__)
   munmap(data_, size_);
   close(fd_);
+#endif
 }

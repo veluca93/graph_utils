@@ -16,8 +16,10 @@ int main(int argc, char **argv) {
               "Format to be read from input (leave empty to autodetect)");
   app.add_set("--output-format,-F", output_format, Graph::WriteFormats(),
               "Format to be written to the output (leave empty to autodetect)");
+#if __linux__
   app.add_flag("--dont-populate-cache", dont_populate_cache,
                "Do not read memory mappings as soon as they are created");
+#endif
 
   Commands::AddCommands(&app);
 
