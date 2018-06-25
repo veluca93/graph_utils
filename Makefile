@@ -1,7 +1,7 @@
 CXXFLAGS=\
 	-O3 -Wall -std=c++14 -Iutil -Igraph -Iexternal -Icommands \
 	-flto -g -march=native -DNDEBUG -Dstrtk_no_tr1_or_boost
-LDFLAGS=-flto -Wl,--as-needed -march=native -ltcmalloc
+LDFLAGS=-flto -Wl,--as-needed -march=native
 CXX=g++
 
 SRCS=$(wildcard **/*.cpp) $(wildcard *.cpp)
