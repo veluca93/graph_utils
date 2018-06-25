@@ -2,6 +2,8 @@
 #define GRAPH_HPP
 #include "io.hpp"
 #include "span.hpp"
+#include <functional>
+#include <memory>
 #include <vector>
 
 #ifndef NODE_T
