@@ -5,10 +5,12 @@
 #include <iomanip>
 #include <iostream>
 #include <stdio.h>
+#if defined(__unix__)
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#endif
 
 static const size_t buf_size = 1 << 16;
 
@@ -161,16 +163,22 @@ void Counter::operator++(int) {
 Counter::~Counter() { msg(base_msg_, cnt_, start_, '\n'); }
 
 MemoryMappedFile::MemoryMappedFile(const std::string &filename) {
+#ifdef __unix__
   struct stat st;
   assert_m(stat(filename.c_str(), &st) == 0, strerror(errno));
   size_ = st.st_size;
   fd_ = open(filename.c_str(), O_RDONLY, 0);
   auto flags = MAP_SHARED;
+#if __linux__
   if (!flags::dont_populate_cache) {
     flags |= MAP_POPULATE;
   }
+#endif
   data_ = mmap(NULL, size_, PROT_READ, flags, fd_, 0);
   assert_e(data_ != MAP_FAILED);
+#else
+  assert_m(false, "Memory mapped files not implemented on non-unix systems");
+#endif
 }
 
 MemoryMappedFile::~MemoryMappedFile() {
