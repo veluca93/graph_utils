@@ -11,7 +11,7 @@
 #endif
 
 #ifndef EDGE_T
-#define EDGE_T uint32_t
+#define EDGE_T uint64_t
 #endif
 
 struct node_t {

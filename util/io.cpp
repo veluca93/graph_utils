@@ -14,7 +14,7 @@
 
 static const size_t buf_size = 1 << 16;
 
-static char buf[buf_size] = {};
+static char buf[buf_size + 1] = {};
 static size_t buf_position = 0;
 
 static FILE *outfile = stdout;
