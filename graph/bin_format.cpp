@@ -14,8 +14,8 @@ public:
     assert_m(fingerprint == *(size_t *)data,
              "This binary file was created with different node/edge sizes!");
     N = data[sizeof(size_t) / sizeof(node_t)];
-    neigh_start_ = (edge_t *)data + 1 + sizeof(size_t) / sizeof(node_t);
-    neighs_ = data + (sizeof(edge_t) / sizeof(node_t)) * N + 2 +
+    neigh_start_ = (edge_t *)(data + 1 + sizeof(size_t) / sizeof(node_t));
+    neighs_ = data + (sizeof(edge_t) / sizeof(node_t)) * (N + 1) + 1 +
               sizeof(size_t) / sizeof(node_t);
   }
   node_t size() const { return N; }
