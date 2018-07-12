@@ -10,7 +10,6 @@ const constexpr size_t fingerprint = (sizeof(edge_t) << 4) | sizeof(node_t) | 1;
 std::unique_ptr<Graph> ReadSBIN(int options) {
   auto chg = SetupGraphInput();
   size_t fg = bin_read<size_t>();
-  std::cerr << fg << std::endl;
   assert_m(fg == fingerprint,
            "This binary file was created with different node/edge sizes!");
   node_t N = bin_read<node_t>();
@@ -49,8 +48,9 @@ void WriteSBIN(const Graph *g) {
   auto chg = SetupGraphOutput();
   {
     Counter cnt("Writing output");
-    size_t N = g->size();
     write_span(span<const size_t>(&fingerprint, 1));
+    node_t N = g->size();
+    write_span(span<const node_t>(&N, 1));
     for (size_t i = 0; i < N; i++) {
       node_t degree = g->degree(i);
       write_span(span<const node_t>(&degree, 1));
