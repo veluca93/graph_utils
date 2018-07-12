@@ -109,6 +109,10 @@ void AddToBuffer(const std::string &s) { AddToBuffer(s.c_str(), s.size()); }
 
 template <> void write(const char &param) { AddToBuffer(param); }
 
+void bin_read(void *out, size_t sz, size_t count) {
+  fread(out, sz, count, infile);
+}
+
 size_t nextInt(bool comments) {
   size_t n = 0;
   int ch = getc_unlocked(infile);

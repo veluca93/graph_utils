@@ -80,7 +80,7 @@ std::unique_ptr<Graph> Graph::Read(int options) {
   std::string format = flags::input_format;
   if (format.empty()) {
     for (const auto &kv : Readers()) {
-      if (strtk::ends_with(kv.first, flags::input_file)) {
+      if (strtk::ends_with("." + kv.first, flags::input_file)) {
         format = kv.first;
         break;
       }
@@ -95,7 +95,7 @@ void Graph::Write(const Graph *g) {
   std::string format = flags::output_format;
   if (format.empty()) {
     for (const auto &kv : Writers()) {
-      if (strtk::ends_with(kv.first, flags::output_file)) {
+      if (strtk::ends_with("." + kv.first, flags::output_file)) {
         format = kv.first;
         break;
       }

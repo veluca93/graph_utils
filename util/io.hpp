@@ -62,6 +62,14 @@ void span_to_file(const std::string &filename, const std::vector<T> &v) {
   write_span(span<T>(v));
 }
 
+void bin_read(void *out, size_t sz, size_t count = 1);
+
+template <typename T> T bin_read() {
+  T ans;
+  bin_read(&ans, sizeof(T));
+  return ans;
+}
+
 class MemoryMappedFile {
 public:
   MemoryMappedFile(const std::string &filename);
